@@ -1,10 +1,9 @@
 package wonder.console;
 
-import wonder.core.Message;
+import wonder.core.Card;
 
 public class Main {
     public static void main(String... args) {
-        Message message = new Message();
-        System.out.println(message.getMessage());
+        System.out.println(new Card("Lumber Yard", Card.Type.Brown, Card.Age.One, 3));
     }
 }
