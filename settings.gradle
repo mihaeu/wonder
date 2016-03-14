@@ -20,3 +20,4 @@ rootProject.name = 'wonders'
 
 include 'core'
 include 'console'
+include 'web'
