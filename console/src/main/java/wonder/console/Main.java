@@ -1,9 +1,9 @@
 package wonder.console;
 
-import wonder.core.Card;
+import wonder.core.Cards.LumberYard;
 
 public class Main {
     public static void main(String... args) {
-        System.out.println(new Card("Lumber Yard", Card.Type.Brown, Card.Age.One, 3));
+        System.out.println(new LumberYard(3));
     }
 }
