@@ -1,6 +1,6 @@
 package wonder.core;
 
-public class Card {
+public abstract class Card {
     private int minPlayers;
     private String name;
     private Type type;
@@ -13,19 +13,19 @@ public class Card {
         this.age = age;
     }
 
-    public int minPlayers() {
+    int minPlayers() {
         return minPlayers;
     }
 
-    public String name() {
+    String name() {
         return name;
     }
 
-    public Type type() {
+    Type type() {
         return type;
     }
 
-    public Age age() {
+    Age age() {
         return age;
     }
 
