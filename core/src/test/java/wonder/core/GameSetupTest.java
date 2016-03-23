@@ -1,25 +1,37 @@
 package wonder.core;
 
 import org.junit.Test;
-import wonder.core.Cards.LumberYard;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GameSetupTest {
     @Test
     public void forThreePlayersUsesOnlyThreePlayerCards() {
-        List<Card> expected = Arrays.asList(new LumberYard(3));
         GameSetup setup = new GameSetup();
-        assertEquals(expected, setup.setupGame(3));
+        assertTrue(setup.setupGame(3).stream().allMatch(card -> card.minPlayers() <= 3));
     }
 
     @Test
     public void forFourPlayersUsesOnlyFourPlayerCards() {
-        List<Card> expected = Arrays.asList(new LumberYard(3), new LumberYard(4));
         GameSetup setup = new GameSetup();
-        assertEquals(expected, setup.setupGame(4));
+        assertTrue(setup.setupGame(4).stream().allMatch(card -> card.minPlayers() <= 4));
+    }
+
+    @Test
+    public void forFivePlayersUsesOnlyFivePlayerCards() {
+        GameSetup setup = new GameSetup();
+        assertTrue(setup.setupGame(5).stream().allMatch(card -> card.minPlayers() <= 5));
+    }
+
+    @Test
+    public void forSixPlayersUsesOnlySixPlayerCards() {
+        GameSetup setup = new GameSetup();
+        assertTrue(setup.setupGame(6).stream().allMatch(card -> card.minPlayers() <= 6));
+    }
+
+    @Test
+    public void forSevenPlayersUsesOnlySevenPlayerCards() {
+        GameSetup setup = new GameSetup();
+        assertTrue(setup.setupGame(7).stream().allMatch(card -> card.minPlayers() <= 7));
     }
 }

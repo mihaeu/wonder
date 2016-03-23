@@ -42,7 +42,8 @@ public abstract class Card {
         Green,
         Yellow,
         Red,
-        Purple
+        Purple,
+        Gray
     }
 
     @Override
