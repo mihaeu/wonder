@@ -1,7 +1,6 @@
 package wonder.core;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -42,12 +41,27 @@ public class GameSetupTest {
     }
 
     @Test
-    @Ignore
-    public void gives7CardsToEveryPlayer() {
-        assertEquals(7, setup.setupGame(3).size() / 3);
-        assertEquals(7, setup.setupGame(4).size() / 4);
-        assertEquals(7, setup.setupGame(5).size() / 5);
-        assertEquals(7, setup.setupGame(6).size() / 6);
-        assertEquals(7, setup.setupGame(7).size() / 7);
+    public void gives7CardsToEveryPlayerInThreePlayerGame() {
+        assertEquals(7, setup.setupGame(3).size() / (3 * 3));
+    }
+
+    @Test
+    public void gives7CardsToEveryPlayerInFourPlayerGame() {
+        assertEquals(7, setup.setupGame(4).size() / (4 * 3));
+    }
+
+    @Test
+    public void gives7CardsToEveryPlayerInFivePlayerGame() {
+        assertEquals(7, setup.setupGame(5).size() / (5 * 3));
+    }
+
+    @Test
+    public void gives7CardsToEveryPlayerInSixPlayerGame() {
+        assertEquals(7, setup.setupGame(6).size() / (6 * 3));
+    }
+
+    @Test
+    public void gives7CardsToEveryPlayerInSevenPlayerGame() {
+        assertEquals(7, setup.setupGame(7).size() / (7 * 3));
     }
 }
