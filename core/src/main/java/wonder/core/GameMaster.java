@@ -4,10 +4,7 @@ import wonder.core.Events.GameCreated;
 import wonder.core.Events.GotCards;
 import wonder.core.Events.GotCoins;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameMaster {
@@ -59,8 +56,9 @@ public class GameMaster {
 
     public void initiateGame(Map<Integer, Player> players) {
         int lastId = 0;
-        if (!games.isEmpty()) {
-            lastId = games.keySet().stream().max(Integer::compare).get();
+        final Optional<Integer> max = games.keySet().stream().max(Integer::compare);
+        if (!games.isEmpty() && max.isPresent()) {
+            lastId = max.get();
         }
         initiateGame(players, lastId + 1);
     }
