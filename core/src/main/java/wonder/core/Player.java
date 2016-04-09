@@ -1,5 +1,6 @@
 package wonder.core;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Player {
@@ -12,6 +13,8 @@ public abstract class Player {
     public Player(String name, Wonder wonder) {
         this.name = name;
         this.wonder = wonder;
+        this.cardsAvailable = new ArrayList<>();
+        this.cardsPlayed= new ArrayList<>();
     }
 
     public abstract Card selectCard(List<Card> cards);
@@ -22,6 +25,10 @@ public abstract class Player {
 
     public List<Card> cardsPlayed() {
         return cardsPlayed;
+    }
+
+    public int coins() {
+        return coins;
     }
 
     public void addCoins(int coinsToAdd) {

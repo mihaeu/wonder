@@ -23,12 +23,17 @@ public class GameMaster {
         this.setup = setup;
     }
 
-    public GameMaster(List<Event> log) {
+    public GameMaster(GameSetup setup, List<Event> log) {
+        this(setup);
         this.log = log;
     }
 
     public List<Event> log() {
         return log;
+    }
+
+    public Map<Integer, Game> games() {
+        return games;
     }
 
     public void initiateGame(Map<Integer, Player> players, Integer id) {
