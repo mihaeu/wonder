@@ -15,6 +15,16 @@ public class GameSetupTest {
         setup = new GameSetup();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void minimumThreePlayers() {
+        setup.setupGame(1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void maximumSevenPlayers() {
+        setup.setupGame(8);
+    }
+
     @Test
     public void forThreePlayersUsesOnlyThreePlayerCards() {
         assertTrue(setup.setupGame(3).stream().allMatch(card -> card.minPlayers() <= 3));

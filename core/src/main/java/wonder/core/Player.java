@@ -2,14 +2,31 @@ package wonder.core;
 
 import java.util.List;
 
-abstract class Player {
+public abstract class Player {
     private String name;
+    private Wonder wonder;
+    private List<Card> cardsAvailable;
+    private List<Card> cardsPlayed;
+    private int coins = 0;
 
-    public Player(String name) {
+    public Player(String name, Wonder wonder) {
         this.name = name;
+        this.wonder = wonder;
     }
 
     public abstract Card selectCard(List<Card> cards);
+
+    public List<Card> cardsAvailable() {
+        return cardsAvailable;
+    }
+
+    public List<Card> cardsPlayed() {
+        return cardsPlayed;
+    }
+
+    public void addCoins(int coinsToAdd) {
+        coins += coinsToAdd;
+    }
 
     @Override
     public boolean equals(Object o) {

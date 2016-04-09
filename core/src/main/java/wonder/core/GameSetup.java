@@ -6,8 +6,31 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 class GameSetup {
+
+    List<Card> setupGame(final int numberOfPlayers) {
+        if (numberOfPlayers < 3 || numberOfPlayers > 7) {
+            throw new IllegalArgumentException("Number of players allowed 3 - 7");
+        }
+
+        final List<Card> purpleCards = allCards.stream()
+                .filter(card -> card.type() == Card.Type.Purple)
+                .limit(numberOfPurpleCardsForGame(numberOfPlayers))
+                .collect(Collectors.toList());
+
+        final List<Card> otherCards = allCards.stream()
+                .filter(card -> card.type() != Card.Type.Purple)
+                .filter(card -> card.minPlayers() <= numberOfPlayers)
+                .collect(Collectors.toList());
+
+        otherCards.addAll(purpleCards);
+        Collections.shuffle(otherCards);
+        return otherCards;
+    }
+
+    private int numberOfPurpleCardsForGame(final int numberOfPlayers) {
+        return numberOfPlayers + 2;
+    }
 
     private final List<Card> allCards = Arrays.asList(
             new LumberYard(3),
@@ -159,24 +182,4 @@ class GameSetup {
             new MagistratesGuild(),
             new BuildersGuild()
     );
-
-    List<Card> setupGame(final int numberOfPlayers) {
-        final List<Card> purpleCards = allCards.stream()
-                .filter(card -> card.type() == Card.Type.Purple)
-                .limit(numberOfPurpleCardsForGame(numberOfPlayers))
-                .collect(Collectors.toList());
-
-        final List<Card> otherCards = allCards.stream()
-                .filter(card -> card.type() != Card.Type.Purple)
-                .filter(card -> card.minPlayers() <= numberOfPlayers)
-                .collect(Collectors.toList());
-
-        otherCards.addAll(purpleCards);
-        Collections.shuffle(otherCards);
-        return otherCards;
-    }
-
-    private int numberOfPurpleCardsForGame(final int numberOfPlayers) {
-        return numberOfPlayers + 2;
-    }
 }
