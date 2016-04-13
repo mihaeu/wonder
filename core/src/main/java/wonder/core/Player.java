@@ -3,21 +3,22 @@ package wonder.core;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Player {
+public class Player {
+    private int id;
     private String name;
     private Wonder wonder;
+    private List<Card> nextCards;
     private List<Card> cardsAvailable;
     private List<Card> cardsPlayed;
     private int coins = 0;
 
-    public Player(String name, Wonder wonder) {
+    public Player(int id, String name, Wonder wonder) {
+        this.id = id;
         this.name = name;
         this.wonder = wonder;
         this.cardsAvailable = new ArrayList<>();
         this.cardsPlayed= new ArrayList<>();
     }
-
-    public abstract Card selectCard(List<Card> cards);
 
     public List<Card> cardsAvailable() {
         return cardsAvailable;
@@ -25,6 +26,10 @@ public abstract class Player {
 
     public List<Card> cardsPlayed() {
         return cardsPlayed;
+    }
+
+    public int id() {
+        return id;
     }
 
     public int coins() {

@@ -1,8 +1,6 @@
 package wonder.core;
 
-import wonder.core.Events.GameCreated;
-import wonder.core.Events.GotCards;
-import wonder.core.Events.GotCoins;
+import wonder.core.Events.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -10,6 +8,8 @@ import java.util.stream.Collectors;
 public class GameMaster {
     public static final int INITIAL_CARDS_PER_PLAYER = 7;
     public static final int STARTING_COINS = 3;
+    public static final int ROUNDS_PER_AGE = 6;
+    public static final int AGES_PER_GAME = 3;
     private GameSetup setup;
     private List<Event> log;
     private Map<Integer, Game> games;
@@ -45,10 +45,10 @@ public class GameMaster {
         int offset = 0;
         for (Integer key : players.keySet()) {
             final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.add(new GotCards(players.get(key), handCards));
+            log.add(new GotCards(handCards, players.get(key), id));
             games.get(id).players().get(key).cardsAvailable().addAll(handCards);
 
-            log.add(new GotCoins(players.get(key), STARTING_COINS));
+            log.add(new GotCoins(players.get(key), STARTING_COINS, id));
             games.get(id).players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
@@ -63,10 +63,53 @@ public class GameMaster {
         initiateGame(players, lastId + 1);
     }
 
-    public void startRounds(List<Player> players) {
-        players.forEach(player -> {
-            final Card selectedCard = player.selectCard(null);
-            log.add(new CardSelected(player, selectedCard));
-        });
+    public void cardPlayed(Card card, Player player, Game game) {
+        // @TODO check if card can be played
+        log.add(new CardPlayed(card, player, game));
+//        game.players().get(player.id()).cardsPlayed().add(card);
+        if (isRoundCompleted(game)) {
+            roundCompleted(game);
+        }
+    }
+
+    private void roundCompleted(Game game) {
+        log.add(new RoundCompleted(game));
+        if (isAgeCompleted(game)) {
+            ageCompleted(game);
+        }
+    }
+
+    public boolean isRoundCompleted(Game game) {
+        return 0 == log.stream()
+                .filter(event -> event.gameId() == game.id())
+                .filter(event -> event instanceof CardPlayed)
+                .count() % game.players().size();
+    }
+
+    private void ageCompleted(Game game) {
+        log.add(new AgeCompleted(game, Card.Age.One));
+
+        if (isGameCompleted(game)) {
+            completeGame(game);
+        }
+    }
+
+    public boolean isAgeCompleted(Game game) {
+        final long count = log.stream()
+                .filter(event -> event.gameId() == game.id())
+                .filter(event -> event instanceof RoundCompleted)
+                .count();
+        return count != 0 && 0 == count % ROUNDS_PER_AGE;
+    }
+
+    public void completeGame(Game game) {
+        log.add(new GameCompleted(game));
+    }
+
+    public boolean isGameCompleted(Game game) {
+        return AGES_PER_GAME == log.stream()
+                .filter(event -> event.gameId() == game.id())
+                .filter(event -> event instanceof AgeCompleted)
+                .count();
     }
 }

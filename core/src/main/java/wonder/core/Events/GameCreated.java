@@ -18,15 +18,16 @@ public class GameCreated implements Event {
         this.cards = cards;
     }
 
-    public int id() {
-        return id;
-    }
-
     public Map<Integer, Player> players() {
         return players;
     }
 
     public List<Card> cards() {
         return cards;
+    }
+
+    @Override
+    public int gameId() {
+        return id;
     }
 }
