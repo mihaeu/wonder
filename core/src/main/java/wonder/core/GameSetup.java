@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-class GameSetup {
+public class GameSetup {
 
     List<Card> setupGame(final int numberOfPlayers) {
         if (numberOfPlayers < 3 || numberOfPlayers > 7) {
