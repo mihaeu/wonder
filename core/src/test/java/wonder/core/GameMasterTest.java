@@ -101,6 +101,24 @@ public class GameMasterTest {
         assertEquals(6, master.cardsAvailable(players.get(0), game).size());
     }
 
+    @Test
+    public void findsActiveAge() {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        assertEquals(Card.Age.One, master.activeAge(game));
+
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.One));
+        assertEquals(Card.Age.Two, master.activeAge(game));
+
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Two));
+        assertEquals(Card.Age.Three, master.activeAge(game));
+
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Three));
+        assertEquals(Card.Age.Three, master.activeAge(game));
+    }
+
     public Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {

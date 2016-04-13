@@ -68,11 +68,14 @@ public class GameMaster {
     }
 
     public Card.Age activeAge(Game game) {
-        return currentGameStream(game)
+        final List<Card.Age> ages = currentGameStream(game)
                 .filter(event -> event instanceof AgeCompleted)
-                .map(event -> (AgeCompleted) event)
-                .max((o1, o2) -> o1.age().compareTo(o2.age()))
-                .get().age();
+                .map(event -> ((AgeCompleted) event).age())
+                .collect(Collectors.toList());
+        if (ages.isEmpty()) return Card.Age.One;
+        if (ages.contains(Card.Age.Three)) return Card.Age.Three;
+        if (ages.contains(Card.Age.Two)) return Card.Age.Three;
+        return Card.Age.Two;
     }
 
     public List<Card> cardsAvailable(Player player, Game game) {
