@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static spark.Spark.exception;
+import static spark.Spark.get;
 import static spark.Spark.put;
 
 public class Web {
@@ -25,12 +26,18 @@ public class Web {
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
             master.cardPlayed(new ClayPit(), players.get(playerId), master.games().get(gameId));
-            return master.log().toString();
+            return "OK";
         });
 
-        exception(IllegalArgumentException.class, (e, request, response) -> {
+        get("/cards/:playerId/:gameId", (req, res) -> {
+            final int playerId = Integer.valueOf(req.params(":playerId"));
+            final int gameId = Integer.valueOf(req.params(":gameId"));
+            return master.cardsAvailable(players.get(playerId), master.games().get(gameId));
+        });
+
+        exception(Exception.class, (e, request, response) -> {
             response.status(403);
-            response.body(e.getMessage());
+            response.body(e.toString());
         });
     }
 }
