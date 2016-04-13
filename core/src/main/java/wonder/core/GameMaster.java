@@ -4,6 +4,7 @@ import wonder.core.Events.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GameMaster {
     public static final int INITIAL_CARDS_PER_PLAYER = 7;
@@ -64,9 +65,10 @@ public class GameMaster {
     }
 
     public void cardPlayed(Card card, Player player, Game game) {
-        // @TODO check if card can be played
+        if (!isPlayerAllowedToPlay(player, game)) {
+            throw new IllegalArgumentException("Player is not allowed to play");
+        }
         log.add(new CardPlayed(card, player, game));
-//        game.players().get(player.id()).cardsPlayed().add(card);
         if (isRoundCompleted(game)) {
             roundCompleted(game);
         }
@@ -80,8 +82,7 @@ public class GameMaster {
     }
 
     public boolean isRoundCompleted(Game game) {
-        return 0 == log.stream()
-                .filter(event -> event.gameId() == game.id())
+        return 0 == currentGameStream(game)
                 .filter(event -> event instanceof CardPlayed)
                 .count() % game.players().size();
     }
@@ -95,8 +96,7 @@ public class GameMaster {
     }
 
     public boolean isAgeCompleted(Game game) {
-        final long count = log.stream()
-                .filter(event -> event.gameId() == game.id())
+        final long count = currentGameStream(game)
                 .filter(event -> event instanceof RoundCompleted)
                 .count();
         return count != 0 && 0 == count % ROUNDS_PER_AGE;
@@ -107,9 +107,24 @@ public class GameMaster {
     }
 
     public boolean isGameCompleted(Game game) {
-        return AGES_PER_GAME == log.stream()
-                .filter(event -> event.gameId() == game.id())
+        return AGES_PER_GAME == currentGameStream(game)
                 .filter(event -> event instanceof AgeCompleted)
                 .count();
+    }
+
+    public boolean isPlayerAllowedToPlay(Player player, Game game) {
+        final long numberOfRoundsCompleted = currentGameStream(game)
+                .filter(event -> event instanceof RoundCompleted)
+                .count();
+        final long cardsPlayedByPlayer = currentGameStream(game)
+                .filter(event -> event instanceof CardPlayed)
+                .map(event -> (CardPlayed) event)
+                .filter(event -> event.player().id() == player.id())
+                .count();
+        return numberOfRoundsCompleted >= cardsPlayedByPlayer;
+    }
+
+    private Stream<Event> currentGameStream(final Game game) {
+        return log.stream().filter(event -> game.id() == event.gameId());
     }
 }

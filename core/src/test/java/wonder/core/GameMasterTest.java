@@ -1,6 +1,5 @@
 package wonder.core;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import wonder.core.Cards.GlassWorks;
 import wonder.core.Cards.Loom;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class GameMasterTest {
@@ -50,6 +50,15 @@ public class GameMasterTest {
     }
 
     @Test
+    public void playerCannotPlayTwiceInOneRound() {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(mockPlayers(3));
+        master.cardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1));
+        assertFalse(master.isPlayerAllowedToPlay(players.get(0), master.games().get(1)));
+    }
+
+    @Test
     public void detectsWhenRoundIsCompleted() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
@@ -74,8 +83,7 @@ public class GameMasterTest {
         assertTrue(master.isAgeCompleted(game));
     }
 
-    @Test
-    @Ignore
+
     public void detectsWhenGameIsCompleted() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);

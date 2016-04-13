@@ -7,9 +7,7 @@ public class Player {
     private int id;
     private String name;
     private Wonder wonder;
-    private List<Card> nextCards;
     private List<Card> cardsAvailable;
-    private List<Card> cardsPlayed;
     private int coins = 0;
 
     public Player(int id, String name, Wonder wonder) {
@@ -17,15 +15,10 @@ public class Player {
         this.name = name;
         this.wonder = wonder;
         this.cardsAvailable = new ArrayList<>();
-        this.cardsPlayed= new ArrayList<>();
     }
 
     public List<Card> cardsAvailable() {
         return cardsAvailable;
-    }
-
-    public List<Card> cardsPlayed() {
-        return cardsPlayed;
     }
 
     public int id() {
