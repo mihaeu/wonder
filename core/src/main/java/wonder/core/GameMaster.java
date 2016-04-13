@@ -9,10 +9,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GameMaster {
-    public static final int INITIAL_CARDS_PER_PLAYER = 7;
-    public static final int STARTING_COINS = 3;
-    public static final int ROUNDS_PER_AGE = 6;
-    public static final int AGES_PER_GAME = 3;
+    private static final int INITIAL_CARDS_PER_PLAYER = 7;
+    private static final int STARTING_COINS = 3;
+    private static final int ROUNDS_PER_AGE = 6;
+    private static final int AGES_PER_GAME = 3;
+
     private GameSetup setup;
     private List<Event> log;
     private Map<Integer, Game> games;
