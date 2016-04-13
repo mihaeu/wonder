@@ -13,6 +13,10 @@ public class AgeCompleted implements Event {
         this.age = age;
     }
 
+    public Card.Age age() {
+        return age;
+    }
+
     @Override
     public int gameId() {
         return game.id();

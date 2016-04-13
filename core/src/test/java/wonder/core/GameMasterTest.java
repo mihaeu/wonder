@@ -1,18 +1,15 @@
 package wonder.core;
 
 import org.junit.Test;
-import wonder.core.Cards.GlassWorks;
 import wonder.core.Cards.Loom;
-import wonder.core.Cards.Press;
-import wonder.core.Events.GameCompleted;
-import wonder.core.Events.GameCreated;
+import wonder.core.Events.*;
+import wonder.core.Exceptions.CardNotAvailableException;
+import wonder.core.Exceptions.NotAllowedToPlayException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class GameMasterTest {
     @Test
@@ -50,51 +47,58 @@ public class GameMasterTest {
     }
 
     @Test
-    public void playerCannotPlayTwiceInOneRound() {
+    public void playerCannotPlayTwiceInOneRound() throws NotAllowedToPlayException, CardNotAvailableException {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(mockPlayers(3));
-        master.cardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1)));
         assertFalse(master.isPlayerAllowedToPlay(players.get(0), master.games().get(1)));
     }
 
     @Test
-    public void detectsWhenRoundIsCompleted() {
+    public void detectsWhenRoundIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
-        master.cardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1));
-        master.cardPlayed(new GlassWorks(3, Card.Age.One), players.get(1), master.games().get(1));
-        master.cardPlayed(new Press(3, Card.Age.One), players.get(2), master.games().get(1));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(1), master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(2), master.games().get(1)));
         assertTrue(master.isRoundCompleted(master.games().get(1)));
     }
 
     @Test
-    public void detectsWhenAgeIsCompleted() {
+    public void detectsWhenAgeIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
         for (int i = 0; i < 6; i += 1) {
-            master.cardPlayed(new Loom(3, Card.Age.One), players.get(0), game);
-            master.cardPlayed(new GlassWorks(3, Card.Age.One), players.get(1), game);
-            master.cardPlayed(new Press(3, Card.Age.One), players.get(2), game);
+            master.log().add(new RoundCompleted(master.games().get(1)));
         }
         assertTrue(master.isAgeCompleted(game));
     }
 
-
-    public void detectsWhenGameIsCompleted() {
+    @Test
+    public void detectsWhenGameIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
-        for (int i = 0; i < 3 * 6; i += 1) {
-            master.cardPlayed(new Loom(3, Card.Age.One), players.get(0), game);
-            master.cardPlayed(new GlassWorks(3, Card.Age.One), players.get(1), game);
-            master.cardPlayed(new Press(3, Card.Age.One), players.get(2), game);
-        }
-        assertTrue(master.log().get(master.log().size() - 1) instanceof GameCompleted);
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.One));
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Two));
+        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Three));
+        assertTrue(master.isGameCompleted(master.games().get(1)));
+    }
+
+    @Test
+    public void findAvailableCardsOfPlayer() throws NotAllowedToPlayException, CardNotAvailableException {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        assertEquals(7, master.cardsAvailable(players.get(0), game).size());
+        master.cardPlayed(players.get(0).cardsAvailable().get(0), players.get(0), game);
+        assertEquals(6, master.cardsAvailable(players.get(0), game).size());
     }
 
     public Map<Integer, Player> mockPlayers(int number) {

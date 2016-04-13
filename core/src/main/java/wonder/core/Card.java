@@ -37,7 +37,6 @@ public abstract class Card {
 
     public enum Type {
         Brown,
-        Silver,
         Blue,
         Green,
         Yellow,

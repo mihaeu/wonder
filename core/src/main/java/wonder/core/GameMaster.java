@@ -1,6 +1,8 @@
 package wonder.core;
 
 import wonder.core.Events.*;
+import wonder.core.Exceptions.CardNotAvailableException;
+import wonder.core.Exceptions.NotAllowedToPlayException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,10 +66,38 @@ public class GameMaster {
         initiateGame(players, lastId + 1);
     }
 
-    public void cardPlayed(Card card, Player player, Game game) {
+    public Card.Age activeAge(Game game) {
+        return currentGameStream(game)
+                .filter(event -> event instanceof AgeCompleted)
+                .map(event -> (AgeCompleted) event)
+                .max((o1, o2) -> o1.age().compareTo(o2.age()))
+                .get().age();
+    }
+
+    public List<Card> cardsAvailable(Player player, Game game) {
+        List<Card> availableCards = new ArrayList<>();
+        currentGameStream(game).forEach(event -> {
+            if (event instanceof AgeCompleted) {
+                availableCards.clear();
+            }
+            if (event instanceof GotCards && ((GotCards) event).player().equals(player)) {
+                availableCards.addAll(((GotCards) event).cards());
+            }
+            if (event instanceof CardPlayed && ((CardPlayed) event).player().equals(player)) {
+                availableCards.remove(((CardPlayed) event).selectedCard());
+            }
+        });
+        return availableCards;
+    }
+
+    public void cardPlayed(Card card, Player player, Game game) throws NotAllowedToPlayException, CardNotAvailableException {
         if (!isPlayerAllowedToPlay(player, game)) {
-            throw new IllegalArgumentException("Player is not allowed to play");
+            throw new NotAllowedToPlayException();
         }
+        if (!cardsAvailable(player, game).contains(card)) {
+            throw new CardNotAvailableException();
+        }
+
         log.add(new CardPlayed(card, player, game));
         if (isRoundCompleted(game)) {
             roundCompleted(game);

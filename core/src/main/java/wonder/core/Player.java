@@ -40,7 +40,8 @@ public class Player {
 
         Player player = (Player) o;
 
-        return name != null ? name.equals(player.name) : player.name == null;
+        return id == player.id;
+
     }
 
     @Override
@@ -51,7 +52,8 @@ public class Player {
     @Override
     public String toString() {
         return "Player{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
                 '}';
     }
 }
