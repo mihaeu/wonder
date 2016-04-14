@@ -7,6 +7,7 @@ import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -117,6 +118,26 @@ public class GameMasterTest {
 
         master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Three));
         assertEquals(Card.Age.Three, master.activeAge(game));
+    }
+
+    @Test
+    public void listPlayedCards() throws NotAllowedToPlayException, CardNotAvailableException {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        for (int i = 0; i < 17; i += 1) {
+            master.cardPlayed(
+                    master.cardsAvailable(players.get(i % 3), game)
+                            .get(0),
+                    players.get(i % 3),
+                    game
+            );
+        }
+        Map<Player, List<Card>> playedCards = master.playedCards(game);
+        assertEquals(6, playedCards.get(players.get(0)).size());
+        assertEquals(6, playedCards.get(players.get(1)).size());
+        assertEquals(5, playedCards.get(players.get(2)).size());
     }
 
     public Map<Integer, Player> mockPlayers(int number) {

@@ -94,6 +94,18 @@ public class GameMaster {
         return availableCards;
     }
 
+    public Map<Player, List<Card>> playedCards(Game game) {
+        Map<Player, List<Card>> playedCards = new HashMap<>();
+        currentGameStream(game).forEach(event -> {
+            if (event instanceof CardPlayed) {
+                Player player = ((CardPlayed) event).player();
+                if (!playedCards.containsKey(player)) playedCards.put(player, new ArrayList<>());
+                playedCards.get(player).add(((CardPlayed) event).selectedCard());
+            }
+        });
+        return playedCards;
+    }
+
     public void cardPlayed(Card card, Player player, Game game) throws NotAllowedToPlayException, CardNotAvailableException {
         if (!isPlayerAllowedToPlay(player, game)) {
             throw new NotAllowedToPlayException();

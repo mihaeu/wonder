@@ -35,6 +35,11 @@ public class Web {
             return master.cardsAvailable(players.get(playerId), master.games().get(gameId));
         });
 
+        get("/cards/:gameId", (req, res) -> {
+            final int gameId = Integer.valueOf(req.params(":gameId"));
+            return master.playedCards(master.games().get(gameId));
+        });
+
         exception(Exception.class, (e, request, response) -> {
             response.status(403);
             response.body(e.toString());
