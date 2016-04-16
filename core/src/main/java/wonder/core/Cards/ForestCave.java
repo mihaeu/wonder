@@ -3,6 +3,9 @@ package wonder.core.Cards;
 import wonder.core.*;
 import wonder.core.Events.GotResources;
 
+import static wonder.core.Resources.Type.OptionalOre;
+import static wonder.core.Resources.Type.OptionalWood;
+
 public class ForestCave extends Card {
     public ForestCave() {
         super("Forest Cave", Type.Brown, Age.One, 5);
@@ -10,6 +13,6 @@ public class ForestCave extends Card {
 
     @Override
     public Event process(Player player, Game game) {
-        return new GotResources(new Resources(Resources.Type.Wood), player, game);
+        return new GotResources(new Resources(OptionalWood, OptionalOre), player, game);
     }
 }

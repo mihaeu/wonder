@@ -27,6 +27,13 @@ public class Resources {
         Ore,
         Glass,
         Textile,
-        Papyrus
+        Papyrus,
+        OptionalStone,
+        OptionalClay,
+        OptionalWood,
+        OptionalOre,
+        OptionalGlass,
+        OptionalTextile,
+        OptionalPapyrus,
     }
 }
