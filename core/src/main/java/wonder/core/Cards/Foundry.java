@@ -7,7 +7,7 @@ import static wonder.core.Resources.Type.Ore;
 
 public class Foundry extends Card {
     public Foundry(int minPlayers) {
-        super("Foundry", Type.Brown, Age.Two, minPlayers);
+        super("Foundry", Type.Brown, Age.Two, minPlayers, 1);
     }
 
     @Override

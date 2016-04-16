@@ -1,8 +1,6 @@
 package wonder.core.Cards;
 
-import wonder.core.Card;
-
-public class WestTradingPost extends Card {
+public class WestTradingPost extends TradingPost {
     public WestTradingPost(int minPlayers) {
         super("WestTradingPost", Type.Yellow, Age.One, minPlayers);
     }

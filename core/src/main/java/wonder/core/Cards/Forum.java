@@ -3,13 +3,11 @@ package wonder.core.Cards;
 import wonder.core.*;
 import wonder.core.Events.GotResources;
 
-import static wonder.core.Resources.Type.OptionalGlass;
-import static wonder.core.Resources.Type.OptionalPapyrus;
-import static wonder.core.Resources.Type.OptionalTextile;
+import static wonder.core.Resources.Type.*;
 
 public class Forum extends Card {
     public Forum(int minPlayers) {
-        super("Forum", Type.Yellow, Age.Two, minPlayers);
+        super("Forum", Type.Yellow, Age.Two, minPlayers, ResourcePool.cost(Clay, Clay), TradingPost.class);
     }
 
     @Override

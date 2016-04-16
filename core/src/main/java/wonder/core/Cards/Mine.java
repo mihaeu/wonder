@@ -8,7 +8,7 @@ import static wonder.core.Resources.Type.OptionalStone;
 
 public class Mine extends Card {
     public Mine() {
-        super("Mine", Type.Brown, Age.One, 6);
+        super("Mine", Type.Brown, Age.One, 6, 1);
     }
 
     @Override

@@ -7,7 +7,7 @@ import static wonder.core.Resources.Type.*;
 
 public class Caravansery extends Card {
     public Caravansery(int minPlayers) {
-        super("Caravansery", Type.Yellow, Age.Two, minPlayers);
+        super("Caravansery", Type.Yellow, Age.Two, minPlayers, ResourcePool.cost(Wood, Wood), Marketplace.class);
     }
 
     @Override

@@ -8,7 +8,7 @@ import static wonder.core.Resources.Type.OptionalOre;
 
 public class ClayPit extends Card {
     public ClayPit() {
-        super("Clay Pit", Type.Brown, Age.One, 3);
+        super("Clay Pit", Type.Brown, Age.One, 3, 1);
     }
 
     @Override

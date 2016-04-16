@@ -7,7 +7,7 @@ import static wonder.core.Resources.Type.Wood;
 
 public class SawMill extends Card {
     public SawMill(int minPlayers) {
-        super("Saw Mill", Type.Brown, Age.Two, minPlayers);
+        super("Saw Mill", Type.Brown, Age.Two, minPlayers, 1);
     }
 
     @Override

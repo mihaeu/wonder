@@ -1,7 +1,9 @@
 package wonder.core;
 
 import org.junit.Test;
+import wonder.core.Cards.Library;
 import wonder.core.Cards.Loom;
+import wonder.core.Cards.Scriptorium;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
@@ -171,6 +173,16 @@ public class GameMasterTest {
         master.cardPlayed(master.cardsAvailable(players.get(1), game).get(0), players.get(1), game);
         master.cardPlayed(master.cardsAvailable(players.get(2), game).get(0), players.get(2), game);
         assertEquals("Cards should be passed: 2 -> 1 -> 0 -> 2", firstHandOfFirstPlayer, master.cardsAvailable(players.get(2), game));
+    }
+
+    @Test
+    public void canPlayCardForFreeIfConditionIsMet() {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        master.log().add(new CardPlayed(new Scriptorium(3), players.get(0), game));
+        assertTrue(master.isFree(new Library(3), players.get(0), game));
     }
 
     public Map<Integer, Player> mockPlayers(int number) {

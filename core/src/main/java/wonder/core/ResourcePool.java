@@ -47,4 +47,16 @@ public class ResourcePool {
             return have.containsKey(type) && have.get(type) >= want.get(type);
         });
     }
+
+    public static Map<Type, Integer> cost(Type... types) {
+        Map<Type, Integer> cost = new HashMap<>();
+        for (Type type : types) {
+            if (cost.containsKey(type)) {
+                cost.put(type, cost.get(type) + 1);
+            } else {
+                cost.put(type, 1);
+            }
+        }
+        return cost;
+    }
 }

@@ -7,7 +7,7 @@ import static wonder.core.Resources.Type.Stone;
 
 public class Quarry extends Card {
     public Quarry(int minPlayers) {
-        super("Quarry", Type.Brown, Age.Two, minPlayers);
+        super("Quarry", Type.Brown, Age.Two, minPlayers, 1);
     }
 
     @Override

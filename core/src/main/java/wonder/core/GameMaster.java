@@ -224,8 +224,9 @@ public class GameMaster {
         return false;
     }
 
-    public boolean isFree(Card card) {
-        return false;
+    public boolean isFree(Card card, Player player, Game game) {
+        return cardsPlayedByPlayer(player, game)
+                .anyMatch(cardPlayed -> cardPlayed.selectedCard().getClass() == card.freeConstruction());
     }
 
     private Stream<Event> currentGameStream(final Game game) {

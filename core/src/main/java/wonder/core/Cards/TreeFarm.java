@@ -8,7 +8,7 @@ import static wonder.core.Resources.Type.OptionalWood;
 
 public class TreeFarm extends Card {
     public TreeFarm() {
-        super("Tree Farm", Type.Brown, Age.One, 6);
+        super("Tree Farm", Type.Brown, Age.One, 6, 1);
     }
 
     @Override
