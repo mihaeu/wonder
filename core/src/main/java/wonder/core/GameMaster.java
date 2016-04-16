@@ -220,8 +220,26 @@ public class GameMaster {
         return numberOfRoundsCompleted >= cardsPlayedByPlayer;
     }
 
-    public boolean isAffordable(Card card) {
-        return false;
+    public boolean isAffordable(Card card, Player player, Game game) {
+        if (card.coinCost() == 0 && card.resourceCost().isEmpty()) return true;
+        return card.coinCost() <= coinsAvailable(player, game)
+                && resourcesAvailable(player, game).contains(card.resourceCost());
+    }
+
+    public int coinsAvailable(Player player, Game game) {
+        return currentGameStream(game)
+                .filter(event -> event instanceof GotCoins)
+                .mapToInt(event -> ((GotCoins)event).amount())
+                .sum();
+    }
+
+    private ResourcePool resourcesAvailable(Player player, Game game) {
+        ResourcePool pool = new ResourcePool();
+        currentGameStream(game)
+                .filter(event -> event instanceof GotResources)
+                .map(event -> (GotResources) event)
+                .forEach(gotResources -> pool.add(gotResources.resources()));
+        return pool;
     }
 
     public boolean isFree(Card card, Player player, Game game) {

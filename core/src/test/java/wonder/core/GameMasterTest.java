@@ -188,6 +188,24 @@ public class GameMasterTest {
         assertTrue(master.isFree(new Library(3), players.get(0), game));
     }
 
+    @Test
+    public void checksIfCardResourceCostsCanBePayed() {
+
+    }
+
+    @Test
+    public void checksIfCardsCoinCostsCanBePayed() {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+
+        assertTrue(master.isAffordable(new OreVein(3), players.get(0), game));
+
+        master.log().add(new GotCoins(players.get(0), 1, game.id()));
+        assertTrue(master.isAffordable(new SawMill(3), players.get(0), game));
+    }
+
     public Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {

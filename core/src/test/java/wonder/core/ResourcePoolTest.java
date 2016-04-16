@@ -25,9 +25,9 @@ public class ResourcePoolTest {
         assertTrue(pool.contains(cost));
 
         Map<Type, Integer> tooExpensive = new HashMap<>();
-        cost.put(Ore, 2);
-        cost.put(Clay, 1);
-        cost.put(Wood, 1);
+        tooExpensive.put(Ore, 3);
+        tooExpensive.put(Clay, 1);
+        tooExpensive.put(Wood, 1);
         assertFalse(pool.contains(tooExpensive));
     }
 
@@ -44,8 +44,8 @@ public class ResourcePoolTest {
         assertTrue(pool.contains(cost));
 
         Map<Type, Integer> tooExpensive = new HashMap<>();
-        cost.put(Clay, 1);
-        cost.put(Wood, 1);
+        tooExpensive.put(Clay, 1);
+        tooExpensive.put(Wood, 1);
         assertFalse(pool.contains(tooExpensive));
     }
 }

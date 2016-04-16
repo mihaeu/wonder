@@ -1,5 +1,6 @@
 package wonder.core;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Card {
@@ -16,6 +17,8 @@ public abstract class Card {
         this.name = name;
         this.type = type;
         this.age = age;
+        this.freeConstruction = Object.class;
+        this.resourceCost = new HashMap<>();
     }
 
     public Card(String name, Type type, Age age, int minPlayers, Map<Resources.Type, Integer> resourceCost) {

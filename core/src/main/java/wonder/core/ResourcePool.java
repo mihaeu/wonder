@@ -39,11 +39,12 @@ public class ResourcePool {
     }
 
     public boolean contains(Map<Type, Integer> resources) {
+        if (resources.isEmpty()) return true;
         return pool.stream().anyMatch(typeIntegerMap -> resourcesAffordable(resources, typeIntegerMap));
     }
 
     private boolean resourcesAffordable(Map<Type, Integer> want, Map<Type, Integer> have) {
-        return want.keySet().stream().anyMatch(type -> {
+        return want.keySet().stream().allMatch(type -> {
             return have.containsKey(type) && have.get(type) >= want.get(type);
         });
     }
