@@ -225,8 +225,9 @@ public class GameMaster {
     }
 
     public boolean isFree(Card card, Player player, Game game) {
+        // we have to check like this because of the two trading posts
         return cardsPlayedByPlayer(player, game)
-                .anyMatch(cardPlayed -> cardPlayed.selectedCard().getClass() == card.freeConstruction());
+                .anyMatch(cardPlayed -> card.freeConstruction().isAssignableFrom(cardPlayed.selectedCard().getClass()));
     }
 
     private Stream<Event> currentGameStream(final Game game) {

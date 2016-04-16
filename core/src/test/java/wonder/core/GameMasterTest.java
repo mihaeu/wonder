@@ -1,9 +1,7 @@
 package wonder.core;
 
 import org.junit.Test;
-import wonder.core.Cards.Library;
-import wonder.core.Cards.Loom;
-import wonder.core.Cards.Scriptorium;
+import wonder.core.Cards.*;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
@@ -181,6 +179,11 @@ public class GameMasterTest {
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
+
+        // this one is special, because we're using a subclass
+        master.log().add(new CardPlayed(new EastTradingPost(3), players.get(0), game));
+        assertTrue(master.isFree(new Forum(3), players.get(0), game));
+
         master.log().add(new CardPlayed(new Scriptorium(3), players.get(0), game));
         assertTrue(master.isFree(new Library(3), players.get(0), game));
     }
