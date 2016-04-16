@@ -29,6 +29,15 @@ public abstract class Card {
         return age;
     }
 
+    public Event process(Player player, Game game) {
+        return new Event() {
+            @Override
+            public int gameId() {
+                return 0;
+            }
+        };
+    }
+
     public enum Age {
         One,
         Two,

@@ -140,6 +140,39 @@ public class GameMasterTest {
         assertEquals(5, playedCards.get(players.get(2)).size());
     }
 
+    @Test
+    public void handsCardsToNextPlayer() throws NotAllowedToPlayException, CardNotAvailableException {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
+        master.cardPlayed(firstHandOfFirstPlayer.get(0), players.get(0), game);
+        firstHandOfFirstPlayer.remove(0);
+
+        master.cardPlayed(master.cardsAvailable(players.get(1), game).get(0), players.get(1), game);
+        master.cardPlayed(master.cardsAvailable(players.get(2), game).get(0), players.get(2), game);
+        assertEquals("Cards should be passed: 0 -> 1 -> 2 -> 0", firstHandOfFirstPlayer, master.cardsAvailable(players.get(1), game));
+    }
+
+    @Test
+    public void secondAgeCardsArePassedCounterClockwise() throws NotAllowedToPlayException, CardNotAvailableException {
+        GameMaster master = new GameMaster(new GameSetup());
+        final Map<Integer, Player> players = mockPlayers(3);
+        master.initiateGame(players);
+        final Game game = master.games().get(1);
+        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
+        // simulate 2nd age
+        master.log().add(new AgeCompleted(game, Card.Age.One));
+
+        master.cardPlayed(firstHandOfFirstPlayer.get(0), players.get(0), game);
+        firstHandOfFirstPlayer.remove(0);
+
+        master.cardPlayed(master.cardsAvailable(players.get(1), game).get(0), players.get(1), game);
+        master.cardPlayed(master.cardsAvailable(players.get(2), game).get(0), players.get(2), game);
+        assertEquals("Cards should be passed: 2 -> 1 -> 0 -> 2", firstHandOfFirstPlayer, master.cardsAvailable(players.get(2), game));
+    }
+
     public Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {
