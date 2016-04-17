@@ -41,31 +41,31 @@ public abstract class Card {
         this.freeConstruction = freeConstruction;
     }
 
-    int minPlayers() {
+    public int minPlayers() {
         return minPlayers;
     }
 
-    String name() {
+    public String name() {
         return name;
     }
 
-    Type type() {
+    public Type type() {
         return type;
     }
 
-    Age age() {
+    public Age age() {
         return age;
     }
 
-    int coinCost() {
+    public int coinCost() {
         return coinCost;
     }
 
-    Map<Resources.Type, Integer> resourceCost() {
+    public Map<Resources.Type, Integer> resourceCost() {
         return resourceCost;
     }
 
-    Class freeConstruction() {
+    public Class freeConstruction() {
         return freeConstruction;
     }
 

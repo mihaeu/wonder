@@ -235,6 +235,7 @@ public class GameMaster {
     public int coinsAvailable(Player player, Game game) {
         return currentGameStream(game)
                 .filter(event -> event instanceof GotCoins)
+                .filter(event -> ((GotCoins) event).player() == player)
                 .mapToInt(event -> ((GotCoins)event).amount())
                 .sum();
     }

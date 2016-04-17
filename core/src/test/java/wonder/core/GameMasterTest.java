@@ -1,5 +1,6 @@
 package wonder.core;
 
+
 import org.junit.Before;
 import org.junit.Test;
 import wonder.core.Cards.*;
