@@ -1,5 +1,6 @@
 package wonder.core;
 
+import org.junit.Before;
 import org.junit.Test;
 import wonder.core.Cards.*;
 import wonder.core.Events.*;
@@ -7,13 +8,29 @@ import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static wonder.core.Resources.Type.Stone;
 
 public class GameMasterTest {
+    private Game game;
+    private GameMaster master;
+    private Player firstPlayer;
+    private Map<Integer, Player> players;
+
+    @Before
+    public void setUp() {
+        master = new GameMaster(new GameSetup());
+        players = mockPlayers(3);
+        master.initiateGame(players);
+        game = master.games().get(1);
+        firstPlayer = players.get(0);
+    }
+
     @Test
     public void givesEveryPlayerSevenCardsAndThreeCoins() {
         GameMaster master = new GameMaster(new GameSetup());
@@ -53,8 +70,8 @@ public class GameMasterTest {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(mockPlayers(3));
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1)));
-        assertFalse(master.isPlayerAllowedToPlay(players.get(0), master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));
+        assertFalse(master.isPlayerAllowedToPlay(firstPlayer, master.games().get(1)));
     }
 
     @Test
@@ -62,7 +79,7 @@ public class GameMasterTest {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(0), master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));
         master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(1), master.games().get(1)));
         master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(2), master.games().get(1)));
         assertTrue(master.isRoundCompleted(master.games().get(1)));
@@ -70,10 +87,6 @@ public class GameMasterTest {
 
     @Test
     public void detectsWhenAgeIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
         for (int i = 0; i < 6; i += 1) {
             master.log().add(new RoundCompleted(master.games().get(1)));
         }
@@ -82,10 +95,6 @@ public class GameMasterTest {
 
     @Test
     public void detectsWhenGameIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
         master.log().add(new AgeCompleted(game, Card.Age.One));
         master.log().add(new AgeCompleted(game, Card.Age.Two));
         master.log().add(new AgeCompleted(game, Card.Age.Three));
@@ -94,21 +103,13 @@ public class GameMasterTest {
 
     @Test
     public void findAvailableCardsOfPlayer() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
-        assertEquals(7, master.cardsAvailable(players.get(0), game).size());
-        playAffordableCard(master, game, players.get(0));
-        assertEquals(6, master.cardsAvailable(players.get(0), game).size());
+        assertEquals(7, master.cardsAvailable(firstPlayer, game).size());
+        playAffordableCard(master, game, firstPlayer);
+        assertEquals(6, master.cardsAvailable(firstPlayer, game).size());
     }
 
     @Test
     public void findsActiveAge() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
         assertEquals(Card.Age.One, master.activeAge(game));
 
         master.log().add(new AgeCompleted(master.games().get(1), Card.Age.One));
@@ -123,29 +124,21 @@ public class GameMasterTest {
 
     @Test
     public void listPlayedCards() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
         for (int i = 0; i < 17; i += 1) {
             playAffordableCard(master, game, players.get(i % 3));
         }
         Map<Player, List<Card>> playedCards = master.playedCards(game);
-        assertEquals(6, playedCards.get(players.get(0)).size());
+        assertEquals(6, playedCards.get(firstPlayer).size());
         assertEquals(6, playedCards.get(players.get(1)).size());
         assertEquals(5, playedCards.get(players.get(2)).size());
     }
 
     @Test
     public void handsCardsToNextPlayer() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
 
-        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
-        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, players.get(0)));
-        playAffordableCard(master, game, players.get(0));
+        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(firstPlayer, game);
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer));
+        playAffordableCard(master, game, firstPlayer);
 
         playAffordableCard(master, game, players.get(1));
         playAffordableCard(master, game, players.get(2));
@@ -154,16 +147,12 @@ public class GameMasterTest {
 
     @Test
     public void secondAgeCardsArePassedCounterClockwise() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
-        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
+        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(firstPlayer, game);
         // simulate 2nd age
         master.log().add(new AgeCompleted(game, Card.Age.One));
 
-        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, players.get(0)));
-        playAffordableCard(master, game, players.get(0));
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer));
+        playAffordableCard(master, game, firstPlayer);
 
         playAffordableCard(master, game, players.get(1));
         playAffordableCard(master, game, players.get(2));
@@ -172,35 +161,30 @@ public class GameMasterTest {
 
     @Test
     public void canPlayCardForFreeIfConditionIsMet() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
-
         // this one is special, because we're using a subclass
-        master.log().add(new CardPlayed(new EastTradingPost(3), players.get(0), game));
-        assertTrue(master.isFree(new Forum(3), players.get(0), game));
+        master.log().add(new CardPlayed(new EastTradingPost(3), firstPlayer, game));
+        assertTrue(master.isFree(new Forum(3), firstPlayer, game));
 
-        master.log().add(new CardPlayed(new Scriptorium(3), players.get(0), game));
-        assertTrue(master.isFree(new Library(3), players.get(0), game));
+        master.log().add(new CardPlayed(new Scriptorium(3), firstPlayer, game));
+        assertTrue(master.isFree(new Library(3), firstPlayer, game));
     }
 
     @Test
     public void checksIfCardResourceCostsCanBePayed() {
+        assertTrue("Card costs no resources", master.isAffordable(new OreVein(3), firstPlayer, game));
 
+        Event gotResources = new GotResources(new Resources(Stone, Stone, Stone), firstPlayer, game);
+        master.log().addAll(Arrays.asList(gotResources, gotResources, gotResources));
+        assertTrue(master.isAffordable(new Aqeduct(3), firstPlayer, game));
     }
 
     @Test
     public void checksIfCardsCoinCostsCanBePayed() {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        final Game game = master.games().get(1);
 
-        assertTrue(master.isAffordable(new OreVein(3), players.get(0), game));
+        assertTrue(master.isAffordable(new OreVein(3), firstPlayer, game));
 
-        master.log().add(new GotCoins(players.get(0), 1, game.id()));
-        assertTrue(master.isAffordable(new SawMill(3), players.get(0), game));
+        master.log().add(new GotCoins(firstPlayer, 1, game.id()));
+        assertTrue(master.isAffordable(new SawMill(3), firstPlayer, game));
     }
 
     private Map<Integer, Player> mockPlayers(int number) {
@@ -215,11 +199,7 @@ public class GameMasterTest {
         Card affordableCard = findAffordableCard(master, game, player);
         try {
             master.cardPlayed(affordableCard, player, game);
-        } catch (NotAllowedToPlayException e) {
-            e.printStackTrace();
-        } catch (CardNotAvailableException e) {
-            e.printStackTrace();
-        } catch (CardNotAffordableException e) {
+        } catch (NotAllowedToPlayException | CardNotAvailableException | CardNotAffordableException e) {
             e.printStackTrace();
         }
     }
