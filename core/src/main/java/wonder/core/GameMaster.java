@@ -1,6 +1,7 @@
 package wonder.core;
 
 import wonder.core.Events.*;
+import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
@@ -104,12 +105,17 @@ public class GameMaster {
         return playedCards;
     }
 
-    public void cardPlayed(Card card, Player player, Game game) throws NotAllowedToPlayException, CardNotAvailableException {
+    public void cardPlayed(Card card, Player player, Game game)
+            throws NotAllowedToPlayException, CardNotAvailableException, CardNotAffordableException {
         if (!isPlayerAllowedToPlay(player, game)) {
             throw new NotAllowedToPlayException();
         }
         if (!cardsAvailable(player, game).contains(card)) {
             throw new CardNotAvailableException();
+        }
+        if (!isFree(card, player, game)
+                && !isAffordable(card, player, game)) {
+            throw new CardNotAffordableException();
         }
 
         log.add(new CardPlayed(card, player, game));

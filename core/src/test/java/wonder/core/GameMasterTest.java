@@ -3,6 +3,7 @@ package wonder.core;
 import org.junit.Test;
 import wonder.core.Cards.*;
 import wonder.core.Events.*;
+import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
@@ -85,20 +86,20 @@ public class GameMasterTest {
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.One));
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Two));
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Three));
-        assertTrue(master.isGameCompleted(master.games().get(1)));
+        master.log().add(new AgeCompleted(game, Card.Age.One));
+        master.log().add(new AgeCompleted(game, Card.Age.Two));
+        master.log().add(new AgeCompleted(game, Card.Age.Three));
+        assertTrue(master.isGameCompleted(game));
     }
 
     @Test
-    public void findAvailableCardsOfPlayer() throws NotAllowedToPlayException, CardNotAvailableException {
+    public void findAvailableCardsOfPlayer() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
         assertEquals(7, master.cardsAvailable(players.get(0), game).size());
-        master.cardPlayed(players.get(0).cardsAvailable().get(0), players.get(0), game);
+        playAffordableCard(master, game, players.get(0));
         assertEquals(6, master.cardsAvailable(players.get(0), game).size());
     }
 
@@ -121,18 +122,13 @@ public class GameMasterTest {
     }
 
     @Test
-    public void listPlayedCards() throws NotAllowedToPlayException, CardNotAvailableException {
+    public void listPlayedCards() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
         for (int i = 0; i < 17; i += 1) {
-            master.cardPlayed(
-                    master.cardsAvailable(players.get(i % 3), game)
-                            .get(0),
-                    players.get(i % 3),
-                    game
-            );
+            playAffordableCard(master, game, players.get(i % 3));
         }
         Map<Player, List<Card>> playedCards = master.playedCards(game);
         assertEquals(6, playedCards.get(players.get(0)).size());
@@ -141,22 +137,23 @@ public class GameMasterTest {
     }
 
     @Test
-    public void handsCardsToNextPlayer() throws NotAllowedToPlayException, CardNotAvailableException {
+    public void handsCardsToNextPlayer() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         final Game game = master.games().get(1);
-        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
-        master.cardPlayed(firstHandOfFirstPlayer.get(0), players.get(0), game);
-        firstHandOfFirstPlayer.remove(0);
 
-        master.cardPlayed(master.cardsAvailable(players.get(1), game).get(0), players.get(1), game);
-        master.cardPlayed(master.cardsAvailable(players.get(2), game).get(0), players.get(2), game);
+        List<Card> firstHandOfFirstPlayer = master.cardsAvailable(players.get(0), game);
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, players.get(0)));
+        playAffordableCard(master, game, players.get(0));
+
+        playAffordableCard(master, game, players.get(1));
+        playAffordableCard(master, game, players.get(2));
         assertEquals("Cards should be passed: 0 -> 1 -> 2 -> 0", firstHandOfFirstPlayer, master.cardsAvailable(players.get(1), game));
     }
 
     @Test
-    public void secondAgeCardsArePassedCounterClockwise() throws NotAllowedToPlayException, CardNotAvailableException {
+    public void secondAgeCardsArePassedCounterClockwise() {
         GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
@@ -165,11 +162,11 @@ public class GameMasterTest {
         // simulate 2nd age
         master.log().add(new AgeCompleted(game, Card.Age.One));
 
-        master.cardPlayed(firstHandOfFirstPlayer.get(0), players.get(0), game);
-        firstHandOfFirstPlayer.remove(0);
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, players.get(0)));
+        playAffordableCard(master, game, players.get(0));
 
-        master.cardPlayed(master.cardsAvailable(players.get(1), game).get(0), players.get(1), game);
-        master.cardPlayed(master.cardsAvailable(players.get(2), game).get(0), players.get(2), game);
+        playAffordableCard(master, game, players.get(1));
+        playAffordableCard(master, game, players.get(2));
         assertEquals("Cards should be passed: 2 -> 1 -> 0 -> 2", firstHandOfFirstPlayer, master.cardsAvailable(players.get(2), game));
     }
 
@@ -206,11 +203,31 @@ public class GameMasterTest {
         assertTrue(master.isAffordable(new SawMill(3), players.get(0), game));
     }
 
-    public Map<Integer, Player> mockPlayers(int number) {
+    private Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {
             players.put(i, new Player(i, "Test", new Wonder("Test")));
         }
         return players;
+    }
+
+    private void playAffordableCard(GameMaster master, Game game, Player player) {
+        Card affordableCard = findAffordableCard(master, game, player);
+        try {
+            master.cardPlayed(affordableCard, player, game);
+        } catch (NotAllowedToPlayException e) {
+            e.printStackTrace();
+        } catch (CardNotAvailableException e) {
+            e.printStackTrace();
+        } catch (CardNotAffordableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Card findAffordableCard(GameMaster master, Game game, Player player) {
+        return master.cardsAvailable(player, game).stream()
+                .filter(card -> master.isAffordable(card, player, game))
+                .findFirst()
+                .get();
     }
 }
