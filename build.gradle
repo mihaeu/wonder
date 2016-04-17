@@ -10,7 +10,9 @@ allprojects {
         compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
         compile group: 'ch.qos.logback', name: 'logback-core', version: '1.0.13'
 
-        testCompile 'junit:junit:4.11'
+        testCompile 'junit:junit:4.12'
         testCompile 'org.mockito:mockito-core:1.+'
     }
 }
+
+jar.dependsOn test
