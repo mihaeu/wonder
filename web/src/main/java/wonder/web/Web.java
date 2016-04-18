@@ -2,7 +2,6 @@ package wonder.web;
 
 import spark.ResponseTransformer;
 import wonder.core.*;
-import wonder.core.Cards.ClayPit;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,10 +18,11 @@ public class Web {
         players.put(3, new Player(3, "Player 3", new Wonder("Rhodos")));
         master.initiateGame(players);
 
-        put("/play/:playerId/:gameId", (req, res) -> {
+        put("/play/:cardIndex/:playerId/:gameId", (req, res) -> {
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
-            master.cardPlayed(new ClayPit(), players.get(playerId), master.games().get(gameId));
+            final int cardIndex = Integer.valueOf(req.params(":cardIndex"));
+            master.cardPlayed(cardIndex, players.get(playerId), master.games().get(gameId));
             return "OK";
         });
 
@@ -36,7 +36,7 @@ public class Web {
         get("/cards/:gameId", (req, res) -> {
             final int gameId = Integer.valueOf(req.params(":gameId"));
             return master.playedCards(master.games().get(gameId));
-        });
+        }, new JsonTransformer());
 
         get("/coins/:playerId/:gameId", (req, res) -> {
             final int playerId = Integer.valueOf(req.params(":playerId"));
@@ -54,11 +54,37 @@ public class Web {
 
         @Override
         public String render(Object model) {
+            if (model instanceof List) {
+                final List cards = (List) model;
+                if (!cards.isEmpty() && cards.get(0) instanceof Card) {
+                    return render((List<Card>) cards);
+                }
+            }
+            if (model instanceof Map) {
+                StringBuilder builder = new StringBuilder();
+                builder.append("{\"players\":");
+                final Map<Player, List<Card>> playerListMap = (Map<Player, List<Card>>) model;
+                for (Player player : playerListMap.keySet()) {
+                    builder.append("{");
+                    builder.append("\"");
+                    builder.append(player.id());
+                    builder.append("\":");
+                    builder.append(render(playerListMap.get(player)));
+                    builder.append("},");
+                }
+                builder.append("}");
+                return builder.toString();
+            }
+            return model.toString();
+        }
+
+        public String render(List<Card> cards) {
             StringBuilder builder = new StringBuilder();
             builder.append("{\"cards\":[");
-            List<Card> cards = ((List<Card>) model);
-            for (int i = 0, count = cards.size() - 1; i < count; i += 1) {
-                builder.append("{\"name\":\"" + cards.get(i).name() + "\"}");
+            for (int i = 0, count = cards.size(); i < count; i += 1) {
+                builder.append("{\"name\":\"");
+                builder.append(cards.get(i).name());
+                builder.append("\"}");
                 if (i + 1 < count) builder.append(",");
             }
             builder.append("]}");

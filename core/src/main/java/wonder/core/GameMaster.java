@@ -95,14 +95,26 @@ public class GameMaster {
 
     public Map<Player, List<Card>> playedCards(Game game) {
         Map<Player, List<Card>> playedCards = new HashMap<>();
-        currentGameStream(game).forEach(event -> {
-            if (event instanceof CardPlayed) {
-                Player player = ((CardPlayed) event).player();
-                if (!playedCards.containsKey(player)) playedCards.put(player, new ArrayList<>());
-                playedCards.get(player).add(((CardPlayed) event).selectedCard());
-            }
+        game.players().forEach((integer, player) -> {
+            playedCards.put(player, new ArrayList<>());
+            cardsPlayedByPlayer(player, game).forEach(cardPlayed -> {
+                playedCards.get(player).add(cardPlayed.selectedCard());
+            });
         });
+//        currentGameStream(game).forEach(event -> {
+//            if (event instanceof CardPlayed) {
+//                Player player = ((CardPlayed) event).player();
+//                if (!playedCards.containsKey(player)) playedCards.put(player, new ArrayList<>());
+//                playedCards.get(player).add(((CardPlayed) event).selectedCard());
+//            }
+//        });
         return playedCards;
+    }
+
+    public void cardPlayed(int cardPlayedIndex, Player player, Game game)
+            throws NotAllowedToPlayException, CardNotAffordableException, CardNotAvailableException {
+        final List<Card> cardsAvailable = cardsAvailable(player, game);
+        cardPlayed(cardsAvailable.get(cardPlayedIndex), player, game);
     }
 
     public void cardPlayed(Card card, Player player, Game game)
