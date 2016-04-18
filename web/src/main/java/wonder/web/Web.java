@@ -1,17 +1,14 @@
 package wonder.web;
 
+import spark.ResponseTransformer;
+import wonder.core.*;
 import wonder.core.Cards.ClayPit;
-import wonder.core.GameMaster;
-import wonder.core.GameSetup;
-import wonder.core.Player;
-import wonder.core.Wonder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static spark.Spark.exception;
-import static spark.Spark.get;
-import static spark.Spark.put;
+import static spark.Spark.*;
 
 public class Web {
     public static void main(String[] args) {
@@ -30,10 +27,11 @@ public class Web {
         });
 
         get("/cards/:playerId/:gameId", (req, res) -> {
+            res.type("text/json");
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
             return master.cardsAvailable(players.get(playerId), master.games().get(gameId));
-        });
+        }, new JsonTransformer());
 
         get("/cards/:gameId", (req, res) -> {
             final int gameId = Integer.valueOf(req.params(":gameId"));
@@ -44,11 +42,28 @@ public class Web {
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
             return master.coinsAvailable(players.get(playerId), master.games().get(gameId));
-        });
+        }, new JsonTransformer());
 
         exception(Exception.class, (e, request, response) -> {
             response.status(403);
             response.body(e.toString());
         });
+    }
+
+    public static class JsonTransformer implements ResponseTransformer {
+
+        @Override
+        public String render(Object model) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("{\"cards\":[");
+            List<Card> cards = ((List<Card>) model);
+            for (int i = 0, count = cards.size() - 1; i < count; i += 1) {
+                builder.append("{\"name\":\"" + cards.get(i).name() + "\"}");
+                if (i + 1 < count) builder.append(",");
+            }
+            builder.append("]}");
+            return builder.toString();
+        }
+
     }
 }
