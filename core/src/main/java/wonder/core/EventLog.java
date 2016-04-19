@@ -23,14 +23,14 @@ public class EventLog {
         Optional<GameCreated> gameCreated = log.stream()
                 .filter(event -> event instanceof GameCreated)
                 .map(event -> ((GameCreated) event))
-                .filter(event -> event.gameId() == gameId)
+                .filter(event -> event.game().id() == gameId)
                 .findFirst();
         return gameCreated.isPresent() ? gameCreated.get().game() : null;
     }
 
 
     public Stream<Event> byGame(final Game game) {
-        return log().stream().filter(event -> game.id() == event.gameId());
+        return log().stream().filter(event -> game == event.game());
     }
 
     public Stream<CardPlayed> byCardByPlayer(final Player player, final Game game) {

@@ -1,34 +1,20 @@
 package wonder.core.Events;
 
 import wonder.core.Card;
+import wonder.core.Card.Age;
 import wonder.core.Event;
 import wonder.core.Game;
 import wonder.core.Player;
 
-public class CardPlayed implements Event {
-    private final Player player;
+public class CardPlayed extends Event {
     private final Card card;
-    private final Game game;
 
-    public CardPlayed(final Card card, final Player player, final Game game) {
-        this.player = player;
+    public CardPlayed(final Card card, final Player player, final Game game, final Age age) {
+        super(player, game, age);
         this.card = card;
-        this.game = game;
     }
 
-    public int gameId() {
-        return game.id();
-    }
-
-    public Card selectedCard() {
+    public Card card() {
         return card;
-    }
-
-    public Player player() {
-        return player;
-    }
-
-    public Game game() {
-        return game;
     }
 }

@@ -9,7 +9,7 @@ public class OreVein extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
-        return new GotResources(new Resources(Resources.Type.Ore), player, game);
+    public Event process(Player player, Game game, Age age) {
+        return new GotResources(new Resources(Resources.Type.Ore), player, game, age);
     }
 }

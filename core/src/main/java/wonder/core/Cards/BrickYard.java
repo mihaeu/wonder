@@ -11,7 +11,7 @@ public class BrickYard extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
-        return new GotResources(new Resources(Clay, Clay), player, game);
+    public Event process(Player player, Game game, Age age) {
+        return new GotResources(new Resources(Clay, Clay), player, game, age);
     }
 }

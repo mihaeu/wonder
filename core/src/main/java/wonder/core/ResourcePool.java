@@ -12,7 +12,7 @@ public class ResourcePool {
 
     public ResourcePool() {
         pool = new ArrayList<>();
-        pool.add(new HashMap<Type, Integer>());
+        pool.add(new HashMap<>());
     }
 
     public void add(Resources resources) {
@@ -44,9 +44,7 @@ public class ResourcePool {
     }
 
     private boolean resourcesAffordable(Map<Type, Integer> want, Map<Type, Integer> have) {
-        return want.keySet().stream().allMatch(type -> {
-            return have.containsKey(type) && have.get(type) >= want.get(type);
-        });
+        return want.keySet().stream().allMatch(type -> have.containsKey(type) && have.get(type) >= want.get(type));
     }
 
     public static Map<Type, Integer> cost(Type... types) {

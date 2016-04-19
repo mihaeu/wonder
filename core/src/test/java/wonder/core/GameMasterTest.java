@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static wonder.core.Card.Age.One;
+import static wonder.core.Card.Age.Three;
+import static wonder.core.Card.Age.Two;
 import static wonder.core.Resources.Type.Stone;
 
 public class GameMasterTest {
@@ -49,8 +52,8 @@ public class GameMasterTest {
     @Test
     public void idsForGames() {
         master.initiateGame(setup.setupGame(3), mockPlayers(3), 2);
-        assertEquals(1, ((GameCreated) log.log().get(0)).gameId());
-        assertEquals(2, ((GameCreated) log.log().get(7)).gameId());
+        assertEquals(1, ((GameCreated) log.log().get(0)).game().id());
+        assertEquals(2, ((GameCreated) log.log().get(7)).game().id());
     }
 
     @Test
@@ -69,31 +72,31 @@ public class GameMasterTest {
 
     @Test
     public void playerCannotPlayTwiceInOneRound() throws NotAllowedToPlayException, CardNotAvailableException {
-        log.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, game));
+        log.log().add(new CardPlayed(new Loom(3, One), firstPlayer, game, One));
         assertFalse(master.isPlayerAllowedToPlay(firstPlayer, game));
     }
 
     @Test
     public void detectsWhenRoundIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        log.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, game));
-        log.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(1), game));
-        log.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(2), game));
+        log.log().add(new CardPlayed(new Loom(3, One), firstPlayer, game, One));
+        log.log().add(new CardPlayed(new Loom(3, One), players.get(1), game, One));
+        log.log().add(new CardPlayed(new Loom(3, One), players.get(2), game, One));
         assertTrue(master.isRoundCompleted(game));
     }
 
     @Test
     public void detectsWhenAgeIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
         for (int i = 0; i < 6; i += 1) {
-            log.log().add(new RoundCompleted(game));
+            log.log().add(new RoundCompleted(Player.EVERY, game, One));
         }
         assertTrue(master.isAgeCompleted(game));
     }
 
     @Test
     public void detectsWhenGameIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        log.log().add(new AgeCompleted(game, Card.Age.One));
-        log.log().add(new AgeCompleted(game, Card.Age.Two));
-        log.log().add(new AgeCompleted(game, Card.Age.Three));
+        log.log().add(new AgeCompleted(Player.EVERY, game, One));
+        log.log().add(new AgeCompleted(Player.EVERY, game, Two));
+        log.log().add(new AgeCompleted(Player.EVERY, game, Three));
         assertTrue(master.isGameCompleted(game));
     }
 
@@ -106,15 +109,15 @@ public class GameMasterTest {
 
     @Test
     public void findsActiveAge() {
-        assertEquals(Card.Age.One, master.activeAge(game));
+        assertEquals(One, master.activeAge(game));
 
-        log.log().add(new AgeCompleted(game, Card.Age.One));
-        assertEquals(Card.Age.Two, master.activeAge(game));
+        log.log().add(new AgeCompleted(Player.EVERY, game, One));
+        assertEquals(Two, master.activeAge(game));
 
-        log.log().add(new AgeCompleted(game, Card.Age.Two));
+        log.log().add(new AgeCompleted(Player.EVERY, game, Two));
         assertEquals(Card.Age.Three, master.activeAge(game));
 
-        log.log().add(new AgeCompleted(game, Card.Age.Three));
+        log.log().add(new AgeCompleted(Player.EVERY, game, Card.Age.Three));
         assertEquals(Card.Age.Three, master.activeAge(game));
     }
 
@@ -145,7 +148,7 @@ public class GameMasterTest {
     public void secondAgeCardsArePassedCounterClockwise() {
         List<Card> firstHandOfFirstPlayer = master.cardsAvailable(firstPlayer, game);
         // simulate 2nd age
-        log.log().add(new AgeCompleted(game, Card.Age.One));
+        log.log().add(new AgeCompleted(Player.EVERY, game, One));
 
         firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer));
         playAffordableCard(master, game, firstPlayer);
@@ -158,10 +161,10 @@ public class GameMasterTest {
     @Test
     public void canPlayCardForFreeIfConditionIsMet() {
         // this one is special, because we're using a subclass
-        log.log().add(new CardPlayed(new EastTradingPost(3), firstPlayer, game));
+        log.log().add(new CardPlayed(new EastTradingPost(3), firstPlayer, game, One));
         assertTrue(master.isFree(new Forum(3), firstPlayer, game));
 
-        log.log().add(new CardPlayed(new Scriptorium(3), firstPlayer, game));
+        log.log().add(new CardPlayed(new Scriptorium(3), firstPlayer, game, One));
         assertTrue(master.isFree(new Library(3), firstPlayer, game));
     }
 
@@ -169,7 +172,7 @@ public class GameMasterTest {
     public void checksIfCardResourceCostsCanBePayed() {
         assertTrue("Card costs no resources", master.isAffordable(new OreVein(3), firstPlayer, game));
 
-        Event gotResources = new GotResources(new Resources(Stone, Stone, Stone), firstPlayer, game);
+        Event gotResources = new GotResources(new Resources(Stone, Stone, Stone), firstPlayer, game, One);
         log.log().addAll(Arrays.asList(gotResources, gotResources, gotResources));
         assertTrue(master.isAffordable(new Aqeduct(3), firstPlayer, game));
     }
@@ -179,7 +182,7 @@ public class GameMasterTest {
 
         assertTrue(master.isAffordable(new OreVein(3), firstPlayer, game));
 
-        log.log().add(new GotCoins(firstPlayer, 1, game.id()));
+        log.log().add(new GotCoins(1, firstPlayer, game, One));
         assertTrue(master.isAffordable(new SawMill(3), firstPlayer, game));
     }
 

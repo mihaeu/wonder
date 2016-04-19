@@ -10,6 +10,8 @@ public class Player {
     private List<Card> cardsAvailable;
     private int coins = 0;
 
+    public static final Player EVERY = new Player(-1, "", null);
+
     public Player(int id, String name, Wonder wonder) {
         this.id = id;
         this.name = name;

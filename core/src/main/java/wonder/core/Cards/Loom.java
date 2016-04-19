@@ -9,7 +9,7 @@ public class Loom extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
-        return new GotResources(new Resources(Resources.Type.Textile), player, game);
+    public Event process(Player player, Game game, Age age) {
+        return new GotResources(new Resources(Resources.Type.Textile), player, game, age);
     }
 }

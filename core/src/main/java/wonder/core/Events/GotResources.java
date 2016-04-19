@@ -1,31 +1,17 @@
 package wonder.core.Events;
 
-import wonder.core.Event;
-import wonder.core.Game;
-import wonder.core.Player;
-import wonder.core.Resources;
+import wonder.core.*;
+import wonder.core.Card.Age;
 
-public class GotResources implements Event {
-    private final Game game;
-    private final Player player;
+public class GotResources extends Event {
     private final Resources resources;
 
-    public GotResources(Resources resources, Player player, Game game) {
+    public GotResources(Resources resources, Player player, Game game, Age age) {
+        super(player, game, age);
         this.resources = resources;
-        this.player = player;
-        this.game = game;
-    }
-
-    public Player player() {
-        return player;
     }
 
     public Resources resources() {
         return resources;
-    }
-
-    @Override
-    public int gameId() {
-        return game.id();
     }
 }

@@ -69,8 +69,8 @@ public abstract class Card {
         return freeConstruction;
     }
 
-    public Event process(final Player player, final Game game) {
-        return () -> 0;
+    public Event process(final Player player, final Game game, final Age age) {
+        return Event.NULL;
     }
 
     public enum Age {

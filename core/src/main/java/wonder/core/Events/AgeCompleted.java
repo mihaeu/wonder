@@ -3,22 +3,10 @@ package wonder.core.Events;
 import wonder.core.Card;
 import wonder.core.Event;
 import wonder.core.Game;
+import wonder.core.Player;
 
-public class AgeCompleted implements Event {
-    private final Game game;
-    private final Card.Age age;
-
-    public AgeCompleted(final Game game, final Card.Age age) {
-        this.game = game;
-        this.age = age;
-    }
-
-    public Card.Age age() {
-        return age;
-    }
-
-    @Override
-    public int gameId() {
-        return game.id();
+public class AgeCompleted extends Event {
+    public AgeCompleted(Player player, Game game, Card.Age age) {
+        super(player, game, age);
     }
 }

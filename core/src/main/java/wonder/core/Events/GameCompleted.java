@@ -1,17 +1,12 @@
 package wonder.core.Events;
 
+import wonder.core.Card;
 import wonder.core.Event;
 import wonder.core.Game;
+import wonder.core.Player;
 
-public class GameCompleted implements Event {
-    private final Game game;
-
-    public GameCompleted(final Game game) {
-        this.game = game;
-    }
-
-    @Override
-    public int gameId() {
-        return game.id();
+public class GameCompleted extends Event {
+    public GameCompleted(Player player, Game game, Card.Age age) {
+        super(player, game, age);
     }
 }

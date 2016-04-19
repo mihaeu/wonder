@@ -11,12 +11,12 @@ public class Caravansery extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
+    public Event process(Player player, Game game, Age age) {
         return new GotResources(new Resources(
                 OptionalClay,
                 OptionalStone,
                 OptionalOre,
                 OptionalWood
-        ), player, game);
+        ), player, game, age);
     }
 }

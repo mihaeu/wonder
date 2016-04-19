@@ -11,7 +11,7 @@ public class LumberYard extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
-        return new GotResources(new Resources(Wood), player, game);
+    public Event process(Player player, Game game, Age age) {
+        return new GotResources(new Resources(Wood), player, game, age);
     }
 }

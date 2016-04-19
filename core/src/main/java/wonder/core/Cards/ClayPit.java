@@ -12,7 +12,7 @@ public class ClayPit extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
-        return new GotResources(new Resources(OptionalClay, OptionalOre), player, game);
+    public Event process(Player player, Game game, Age age) {
+        return new GotResources(new Resources(OptionalClay, OptionalOre), player, game, age);
     }
 }

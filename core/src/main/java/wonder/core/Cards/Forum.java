@@ -11,11 +11,11 @@ public class Forum extends Card {
     }
 
     @Override
-    public Event process(Player player, Game game) {
+    public Event process(Player player, Game game, Age age) {
         return new GotResources(new Resources(
                 OptionalTextile,
                 OptionalGlass,
                 OptionalPapyrus
-        ), player, game);
+        ), player, game, age);
     }
 }
