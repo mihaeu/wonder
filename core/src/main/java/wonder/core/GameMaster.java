@@ -1,5 +1,6 @@
 package wonder.core;
 
+import wonder.core.Card.Age;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
@@ -11,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static wonder.core.Card.Age.One;
-import static wonder.core.Card.Age.Three;
-import static wonder.core.Card.Age.Two;
+import static wonder.core.Card.Age.*;
 
 public class GameMaster {
     private static final int INITIAL_CARDS_PER_PLAYER = 7;
@@ -29,7 +28,7 @@ public class GameMaster {
 
     public void initiateGame(List<Card> cards, Map<Integer, Player> players, Integer gameId) {
         final Game game = new Game(gameId, players, cards);
-        log.log().add(new GameCreated(cards, Player.EVERY, game, One));
+        log.add(new GameCreated(cards, Player.EVERY, game, One));
 
         List<Card> ageOneCards = cards.stream()
                 .filter(card -> card.age() == One)
@@ -37,17 +36,17 @@ public class GameMaster {
         int offset = 0;
         for (Integer key : players.keySet()) {
             final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.log().add(new GotCards(handCards, players.get(key), game, One));
+            log.add(new GotCards(handCards, players.get(key), game, One));
             game.players().get(key).cardsAvailable().addAll(handCards);
 
-            log.log().add(new GotCoins(STARTING_COINS, players.get(key), game, One));
+            log.add(new GotCoins(STARTING_COINS, players.get(key), game, One));
             game.players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
     }
 
-    Card.Age activeAge(Game game) {
-        final List<Card.Age> ages = log.byGame(game)
+    Age activeAge(Game game) {
+        final List<Age> ages = log.byGame(game)
                 .filter(event -> event instanceof AgeCompleted)
                 .map(event -> ((AgeCompleted) event).age())
                 .collect(Collectors.toList());
@@ -110,15 +109,15 @@ public class GameMaster {
             throw new CardNotAffordableException();
         }
 
-        log.log().add(new CardPlayed(card, player, game, activeAge(game)));
-        log.log().add(card.process(player, game, activeAge(game)));
+        log.add(new CardPlayed(card, player, game, activeAge(game)));
+        log.add(card.process(player, game, activeAge(game)));
         if (isRoundCompleted(game)) {
             roundCompleted(game);
         }
     }
 
     private void roundCompleted(Game game) {
-        log.log().add(new RoundCompleted(Player.EVERY, game, activeAge(game)));
+        log.add(new RoundCompleted(Player.EVERY, game, activeAge(game)));
 
         // at the end of the game we don't need to hand cards to other players
         // last card is discarded
@@ -134,7 +133,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(i), game));
 
                 // assign current to next
-                log.log().add(new GotCards(current, game.players().get(i), game, activeAge(game)));
+                log.add(new GotCards(current, game.players().get(i), game, activeAge(game)));
 
                 current = next;
             }
@@ -149,7 +148,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(nextIndex), game));
 
                 // assign current to next
-                log.log().add(new GotCards(current, game.players().get(nextIndex), game, activeAge(game)));
+                log.add(new GotCards(current, game.players().get(nextIndex), game, activeAge(game)));
 
                 current = next;
             }
@@ -174,17 +173,18 @@ public class GameMaster {
     }
 
     private void ageCompleted(Game game) {
-        final Card.Age activeAge = activeAge(game);
-        final Card.Age nextAge = activeAge == One ? Two : Three;
-        log.log().add(new AgeCompleted(Player.EVERY, game, activeAge));
+        final Age activeAge = activeAge(game);
+        final Age nextAge = activeAge == One ? Two : Three;
+        log.add(new AgeCompleted(Player.EVERY, game, activeAge));
 
-        List<Card> ageCards = ((GameCreated) log.log().get(0)).cards().stream()
+        final GameCreated gameCreated = (GameCreated) log.byGame(game).findFirst().get();
+        List<Card> ageCards = gameCreated.cards().stream()
                 .filter(card -> card.age() == nextAge)
                 .collect(Collectors.toList());
         int offset = 0;
         for (Integer key : game.players().keySet()) {
             final List<Card> handCards = ageCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.log().add(new GotCards(handCards, game.players().get(key), game, activeAge));
+            log.add(new GotCards(handCards, game.players().get(key), game, activeAge));
             offset += INITIAL_CARDS_PER_PLAYER;
         }
 
@@ -194,28 +194,21 @@ public class GameMaster {
     }
 
     public boolean isAgeCompleted(Game game) {
-        final long count = log.byGame(game)
-                .filter(event -> event instanceof RoundCompleted)
-                .count();
+        final long count = log.byEvent(RoundCompleted.class, game).count();
         return count != 0 && 0 == count % ROUNDS_PER_AGE;
     }
 
     public void completeGame(Game game) {
-        log.log().add(new GameCompleted(Player.EVERY, game, Three));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
     }
 
     public boolean isGameCompleted(Game game) {
-        return AGES_PER_GAME == log.byGame(game)
-                .filter(event -> event instanceof AgeCompleted)
-                .count();
+        return AGES_PER_GAME == log.byEvent(AgeCompleted.class, Player.EVERY, game).count();
     }
 
     public boolean isPlayerAllowedToPlay(Player player, Game game) {
-        final long numberOfRoundsCompleted = log.byGame(game)
-                .filter(event -> event instanceof RoundCompleted)
-                .count();
-        final long cardsPlayedByPlayer = log.byCardByPlayer(player, game).count();
-        return numberOfRoundsCompleted >= cardsPlayedByPlayer;
+        return log.byEvent(RoundCompleted.class, Player.EVERY, game).count()
+                >= log.byCardByPlayer(player, game).count();
     }
 
     public boolean isAffordable(Card card, Player player, Game game) {
@@ -225,19 +218,15 @@ public class GameMaster {
     }
 
     public int coinsAvailable(Player player, Game game) {
-        return log.byGame(game)
-                .filter(event -> event instanceof GotCoins)
-                .filter(event -> ((GotCoins) event).player() == player)
+        return log.byEvent(GotCoins.class, player, game)
                 .mapToInt(event -> ((GotCoins)event).amount())
                 .sum();
     }
 
     private ResourcePool resourcesAvailable(Player player, Game game) {
         ResourcePool pool = new ResourcePool();
-        log.byGame(game)
-                .filter(event -> event instanceof GotResources)
-                .filter(event -> ((GotResources) event).player() == player)
-                .map(event -> (GotResources) event)
+        log.byEvent(GotResources.class, player, game)
+                .map(GotResources.class::cast)
                 .forEach(gotResources -> pool.add(gotResources.resources()));
         return pool;
     }

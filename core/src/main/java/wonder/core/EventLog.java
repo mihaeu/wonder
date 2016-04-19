@@ -19,6 +19,10 @@ public class EventLog {
         return log;
     }
 
+    public boolean add(Event event) {
+        return log.add(event);
+    }
+
     public Game gameById(int gameId) {
         Optional<GameCreated> gameCreated = log.stream()
                 .filter(event -> event instanceof GameCreated)
@@ -33,10 +37,24 @@ public class EventLog {
         return log().stream().filter(event -> game == event.game());
     }
 
+    public Stream<Event> byPlayerByGame(final Player player,final Game game) {
+        return byGame(game).filter(event -> player == event.player());
+    }
+
     public Stream<CardPlayed> byCardByPlayer(final Player player, final Game game) {
         return byGame(game)
                 .filter(event -> event instanceof CardPlayed)
                 .map(event -> (CardPlayed) event)
                 .filter(event -> event.player() == player);
+    }
+
+    public Stream<Event> byEvent(final Class event, final Player player, final Game game) {
+        return byPlayerByGame(player, game)
+                .filter(otherEvent -> event == otherEvent.getClass());
+    }
+
+    public Stream<Event> byEvent(final Class event, final Game game) {
+        return byGame(game)
+                .filter(otherEvent -> event == otherEvent.getClass());
     }
 }

@@ -179,7 +179,6 @@ public class GameMasterTest {
 
     @Test
     public void checksIfCardsCoinCostsCanBePayed() {
-
         assertTrue(master.isAffordable(new OreVein(3), firstPlayer, game));
 
         log.log().add(new GotCoins(1, firstPlayer, game, One));
