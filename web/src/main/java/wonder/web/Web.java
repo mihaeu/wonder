@@ -34,15 +34,17 @@ public class Web {
         }, new JsonTransformer());
 
         get("/cards/:gameId", (req, res) -> {
+            res.type("text/json");
             final int gameId = Integer.valueOf(req.params(":gameId"));
             return master.playedCards(master.games().get(gameId));
         }, new JsonTransformer());
 
         get("/coins/:playerId/:gameId", (req, res) -> {
+            res.type("text/json");
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
-            return master.coinsAvailable(players.get(playerId), master.games().get(gameId));
-        }, new JsonTransformer());
+            return "{\"coins\":" + master.coinsAvailable(players.get(playerId), master.games().get(gameId)) + "}";
+        });
 
         exception(Exception.class, (e, request, response) -> {
             response.status(403);
@@ -62,8 +64,11 @@ public class Web {
             }
             if (model instanceof Map) {
                 StringBuilder builder = new StringBuilder();
-                builder.append("{\"players\":");
                 final Map<Player, List<Card>> playerListMap = (Map<Player, List<Card>>) model;
+                if (playerListMap.isEmpty()) {
+                    return "{}";
+                }
+                builder.append("{\"players\":");
                 for (Player player : playerListMap.keySet()) {
                     builder.append("{");
                     builder.append("\"");
