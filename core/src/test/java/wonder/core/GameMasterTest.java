@@ -129,8 +129,8 @@ public class GameMasterTest {
             playAffordableCard(master, game, players.get(i % 3));
         }
         Map<Player, List<Card>> playedCards = master.playedCards(game);
-        assertEquals(6, playedCards.get(firstPlayer).size());
-        assertEquals(6, playedCards.get(players.get(1)).size());
+        assertEquals("Played 6 cards, but last round not finished", 5, playedCards.get(firstPlayer).size());
+        assertEquals("Played 6 cards, but last round not finished", 5, playedCards.get(players.get(1)).size());
         assertEquals(5, playedCards.get(players.get(2)).size());
     }
 

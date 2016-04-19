@@ -95,26 +95,35 @@ public class GameMaster {
 
     public Map<Player, List<Card>> playedCards(Game game) {
         Map<Player, List<Card>> playedCards = new HashMap<>();
-        game.players().forEach((integer, player) -> {
-            playedCards.put(player, new ArrayList<>());
-            cardsPlayedByPlayer(player, game).forEach(cardPlayed -> {
-                playedCards.get(player).add(cardPlayed.selectedCard());
-            });
-        });
-//        currentGameStream(game).forEach(event -> {
-//            if (event instanceof CardPlayed) {
-//                Player player = ((CardPlayed) event).player();
-//                if (!playedCards.containsKey(player)) playedCards.put(player, new ArrayList<>());
-//                playedCards.get(player).add(((CardPlayed) event).selectedCard());
-//            }
+        Map<Player, List<Card>> cardsPerRound = new HashMap<>();
+        for (Event event : log) {
+            if (event.gameId() != game.id()) continue;
+            if (event instanceof CardPlayed) {
+                final Player player = ((CardPlayed) event).player();
+                cardsPerRound.putIfAbsent(player, new ArrayList<>());
+                cardsPerRound.get(player).add(((CardPlayed) event).selectedCard());
+            } else if (event instanceof RoundCompleted) {
+                cardsPerRound.forEach((player, cards) -> {
+                    playedCards.putIfAbsent(player, new ArrayList<>());
+                    playedCards.get(player).addAll(cards);
+                });
+                cardsPerRound.clear();
+            }
+        }
+
+//        game.players().forEach((integer, player) -> {
+//            playedCards.put(player, new ArrayList<>());
+//            cardsPlayedByPlayer(player, game).forEach(cardPlayed -> {
+//                playedCards.get(player).add(cardPlayed.selectedCard());
+//            });
 //        });
+
         return playedCards;
     }
 
     public void cardPlayed(int cardPlayedIndex, Player player, Game game)
             throws NotAllowedToPlayException, CardNotAffordableException, CardNotAvailableException {
-        final List<Card> cardsAvailable = cardsAvailable(player, game);
-        cardPlayed(cardsAvailable.get(cardPlayedIndex), player, game);
+        cardPlayed(cardsAvailable(player, game).get(cardPlayedIndex), player, game);
     }
 
     public void cardPlayed(Card card, Player player, Game game)
@@ -256,6 +265,7 @@ public class GameMaster {
         ResourcePool pool = new ResourcePool();
         currentGameStream(game)
                 .filter(event -> event instanceof GotResources)
+                .filter(event -> ((GotResources) event).player() == player)
                 .map(event -> (GotResources) event)
                 .forEach(gotResources -> pool.add(gotResources.resources()));
         return pool;
