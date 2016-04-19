@@ -17,10 +17,8 @@ public class GameMaster {
 
     private GameSetup setup;
     private EventLog log;
-    private Map<Integer, Game> games;
 
     public GameMaster(GameSetup setup, EventLog log) {
-        this.games = new HashMap<>();
         this.setup = setup;
         this.log = log;
     }
@@ -29,15 +27,11 @@ public class GameMaster {
         return log.log();
     }
 
-    public Map<Integer, Game> games() {
-        return games;
-    }
-
     public void initiateGame(Map<Integer, Player> players, Integer id) {
         List<Card> cards = setup.setupGame(players.size());
 
-        log().add(new GameCreated(id, players, cards));
-        games.put(id, new Game(id, players, cards));
+        final Game game = new Game(id, players, cards);
+        log().add(new GameCreated(game, players, cards));
 
         List<Card> ageOneCards = cards.stream()
                 .filter(card -> card.age() == Card.Age.One)
@@ -46,21 +40,12 @@ public class GameMaster {
         for (Integer key : players.keySet()) {
             final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
             log().add(new GotCards(handCards, players.get(key), id));
-            games.get(id).players().get(key).cardsAvailable().addAll(handCards);
+            game.players().get(key).cardsAvailable().addAll(handCards);
 
             log().add(new GotCoins(players.get(key), STARTING_COINS, id));
-            games.get(id).players().get(key).addCoins(STARTING_COINS);
+            game.players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
-    }
-
-    public void initiateGame(Map<Integer, Player> players) {
-        int lastId = 0;
-        final Optional<Integer> max = games.keySet().stream().max(Integer::compare);
-        if (!games.isEmpty() && max.isPresent()) {
-            lastId = max.get();
-        }
-        initiateGame(players, lastId + 1);
     }
 
     Card.Age activeAge(Game game) {

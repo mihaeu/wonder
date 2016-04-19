@@ -22,64 +22,64 @@ public class GameMasterTest {
     private GameMaster master;
     private Player firstPlayer;
     private Map<Integer, Player> players;
+    private EventLog log;
 
     @Before
     public void setUp() {
-        master = new GameMaster(new GameSetup(), new EventLog());
+        log = new EventLog();
+        master = new GameMaster(new GameSetup(), log);
         players = mockPlayers(3);
-        master.initiateGame(players);
-        game = master.games().get(1);
+        master.initiateGame(players, 1);
+        game = log.gameById(1);
         firstPlayer = players.get(0);
     }
 
     @Test
     public void givesEveryPlayerSevenCardsAndThreeCoins() {
         master = new GameMaster(new GameSetup(), new EventLog());
-        master.initiateGame(mockPlayers(4));
+        master.initiateGame(mockPlayers(4), 2);
         assertEquals(9, master.log().size());
     }
 
     @Test
-    public void createsAutoIdForGames() {
-        master.initiateGame(mockPlayers(3));
+    public void idsForGames() {
+        master.initiateGame(mockPlayers(3), 2);
         assertEquals(1, ((GameCreated) master.log().get(0)).gameId());
         assertEquals(2, ((GameCreated) master.log().get(7)).gameId());
     }
 
     @Test
     public void afterStartPlayersHaveThreeCoins() {
-        assertEquals(3, master.games().get(1).players().get(0).coins());
-        assertEquals(3, master.games().get(1).players().get(1).coins());
-        assertEquals(3, master.games().get(1).players().get(2).coins());
+        assertEquals(3, log.gameById(1).players().get(0).coins());
+        assertEquals(3, game.players().get(1).coins());
+        assertEquals(3, game.players().get(2).coins());
     }
 
     @Test
     public void afterStartPlayersHaveSevenCards() {
-        assertEquals(7, master.games().get(1).players().get(0).cardsAvailable().size());
-        assertEquals(7, master.games().get(1).players().get(1).cardsAvailable().size());
-        assertEquals(7, master.games().get(1).players().get(2).cardsAvailable().size());
+        assertEquals(7, game.players().get(0).cardsAvailable().size());
+        assertEquals(7, game.players().get(1).cardsAvailable().size());
+        assertEquals(7, game.players().get(2).cardsAvailable().size());
     }
 
     @Test
     public void playerCannotPlayTwiceInOneRound() throws NotAllowedToPlayException, CardNotAvailableException {
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));
-        assertFalse(master.isPlayerAllowedToPlay(firstPlayer, master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, game));
+        assertFalse(master.isPlayerAllowedToPlay(firstPlayer, game));
     }
 
     @Test
     public void detectsWhenRoundIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(players);
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(1), master.games().get(1)));
-        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(2), master.games().get(1)));
-        assertTrue(master.isRoundCompleted(master.games().get(1)));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, game));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(1), game));
+        master.log().add(new CardPlayed(new Loom(3, Card.Age.One), players.get(2), game));
+        assertTrue(master.isRoundCompleted(game));
     }
 
     @Test
     public void detectsWhenAgeIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
         for (int i = 0; i < 6; i += 1) {
-            master.log().add(new RoundCompleted(master.games().get(1)));
+            master.log().add(new RoundCompleted(game));
         }
         assertTrue(master.isAgeCompleted(game));
     }
@@ -103,13 +103,13 @@ public class GameMasterTest {
     public void findsActiveAge() {
         assertEquals(Card.Age.One, master.activeAge(game));
 
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.One));
+        master.log().add(new AgeCompleted(game, Card.Age.One));
         assertEquals(Card.Age.Two, master.activeAge(game));
 
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Two));
+        master.log().add(new AgeCompleted(game, Card.Age.Two));
         assertEquals(Card.Age.Three, master.activeAge(game));
 
-        master.log().add(new AgeCompleted(master.games().get(1), Card.Age.Three));
+        master.log().add(new AgeCompleted(game, Card.Age.Three));
         assertEquals(Card.Age.Three, master.activeAge(game));
     }
 

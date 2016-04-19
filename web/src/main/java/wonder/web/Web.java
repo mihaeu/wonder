@@ -10,19 +10,21 @@ import java.util.Map;
 import static spark.Spark.*;
 
 public class Web {
+    private static EventLog log = new EventLog();
+
     public static void main(String[] args) {
-        GameMaster master = new GameMaster(new GameSetup(), new EventLog());
+        GameMaster master = new GameMaster(new GameSetup(), log);
         Map<Integer, Player> players = new HashMap<>();
         players.put(1, new Player(1, "Player 1", new Wonder("Babylon")));
         players.put(2, new Player(2, "Player 2", new Wonder("Olympia")));
         players.put(3, new Player(3, "Player 3", new Wonder("Rhodos")));
-        master.initiateGame(players);
+        master.initiateGame(players, 1);
 
         put("/play/:cardIndex/:playerId/:gameId", (req, res) -> {
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
             final int cardIndex = Integer.valueOf(req.params(":cardIndex"));
-            master.cardPlayed(cardIndex, players.get(playerId), master.games().get(gameId));
+            master.cardPlayed(cardIndex, players.get(playerId), log.gameById(gameId));
             return "OK";
         });
 
@@ -30,20 +32,20 @@ public class Web {
             res.type("text/json");
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
-            return master.cardsAvailable(players.get(playerId), master.games().get(gameId));
+            return master.cardsAvailable(players.get(playerId), log.gameById(gameId));
         }, new JsonTransformer());
 
         get("/cards/:gameId", (req, res) -> {
             res.type("text/json");
             final int gameId = Integer.valueOf(req.params(":gameId"));
-            return master.playedCards(master.games().get(gameId));
+            return master.playedCards(log.gameById(gameId));
         }, new JsonTransformer());
 
         get("/coins/:playerId/:gameId", (req, res) -> {
             res.type("text/json");
             final int playerId = Integer.valueOf(req.params(":playerId"));
             final int gameId = Integer.valueOf(req.params(":gameId"));
-            return "{\"coins\":" + master.coinsAvailable(players.get(playerId), master.games().get(gameId)) + "}";
+            return "{\"coins\":" + master.coinsAvailable(players.get(playerId), log.gameById(gameId)) + "}";
         });
 
         exception(Exception.class, (e, request, response) -> {
