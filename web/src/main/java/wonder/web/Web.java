@@ -11,7 +11,7 @@ import static spark.Spark.*;
 
 public class Web {
     public static void main(String[] args) {
-        GameMaster master = new GameMaster(new GameSetup());
+        GameMaster master = new GameMaster(new GameSetup(), new EventLog());
         Map<Integer, Player> players = new HashMap<>();
         players.put(1, new Player(1, "Player 1", new Wonder("Babylon")));
         players.put(2, new Player(2, "Player 2", new Wonder("Olympia")));

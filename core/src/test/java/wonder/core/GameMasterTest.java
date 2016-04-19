@@ -25,7 +25,7 @@ public class GameMasterTest {
 
     @Before
     public void setUp() {
-        master = new GameMaster(new GameSetup());
+        master = new GameMaster(new GameSetup(), new EventLog());
         players = mockPlayers(3);
         master.initiateGame(players);
         game = master.games().get(1);
@@ -34,15 +34,13 @@ public class GameMasterTest {
 
     @Test
     public void givesEveryPlayerSevenCardsAndThreeCoins() {
-        GameMaster master = new GameMaster(new GameSetup());
+        master = new GameMaster(new GameSetup(), new EventLog());
         master.initiateGame(mockPlayers(4));
         assertEquals(9, master.log().size());
     }
 
     @Test
     public void createsAutoIdForGames() {
-        GameMaster master = new GameMaster(new GameSetup());
-        master.initiateGame(mockPlayers(3));
         master.initiateGame(mockPlayers(3));
         assertEquals(1, ((GameCreated) master.log().get(0)).gameId());
         assertEquals(2, ((GameCreated) master.log().get(7)).gameId());
@@ -50,8 +48,6 @@ public class GameMasterTest {
 
     @Test
     public void afterStartPlayersHaveThreeCoins() {
-        GameMaster master = new GameMaster(new GameSetup());
-        master.initiateGame(mockPlayers(3));
         assertEquals(3, master.games().get(1).players().get(0).coins());
         assertEquals(3, master.games().get(1).players().get(1).coins());
         assertEquals(3, master.games().get(1).players().get(2).coins());
@@ -59,8 +55,6 @@ public class GameMasterTest {
 
     @Test
     public void afterStartPlayersHaveSevenCards() {
-        GameMaster master = new GameMaster(new GameSetup());
-        master.initiateGame(mockPlayers(3));
         assertEquals(7, master.games().get(1).players().get(0).cardsAvailable().size());
         assertEquals(7, master.games().get(1).players().get(1).cardsAvailable().size());
         assertEquals(7, master.games().get(1).players().get(2).cardsAvailable().size());
@@ -68,16 +62,12 @@ public class GameMasterTest {
 
     @Test
     public void playerCannotPlayTwiceInOneRound() throws NotAllowedToPlayException, CardNotAvailableException {
-        GameMaster master = new GameMaster(new GameSetup());
-        final Map<Integer, Player> players = mockPlayers(3);
-        master.initiateGame(mockPlayers(3));
         master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));
         assertFalse(master.isPlayerAllowedToPlay(firstPlayer, master.games().get(1)));
     }
 
     @Test
     public void detectsWhenRoundIsCompleted() throws NotAllowedToPlayException, CardNotAvailableException {
-        GameMaster master = new GameMaster(new GameSetup());
         final Map<Integer, Player> players = mockPlayers(3);
         master.initiateGame(players);
         master.log().add(new CardPlayed(new Loom(3, Card.Age.One), firstPlayer, master.games().get(1)));

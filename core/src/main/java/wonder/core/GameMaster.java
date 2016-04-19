@@ -16,22 +16,17 @@ public class GameMaster {
     private static final int AGES_PER_GAME = 3;
 
     private GameSetup setup;
-    private List<Event> log;
+    private EventLog log;
     private Map<Integer, Game> games;
 
-    public GameMaster(GameSetup setup) {
-        this.log = new ArrayList<>();
+    public GameMaster(GameSetup setup, EventLog log) {
         this.games = new HashMap<>();
         this.setup = setup;
-    }
-
-    public GameMaster(GameSetup setup, List<Event> log) {
-        this(setup);
         this.log = log;
     }
 
     public List<Event> log() {
-        return log;
+        return log.log();
     }
 
     public Map<Integer, Game> games() {
@@ -41,7 +36,7 @@ public class GameMaster {
     public void initiateGame(Map<Integer, Player> players, Integer id) {
         List<Card> cards = setup.setupGame(players.size());
 
-        log.add(new GameCreated(id, players, cards));
+        log().add(new GameCreated(id, players, cards));
         games.put(id, new Game(id, players, cards));
 
         List<Card> ageOneCards = cards.stream()
@@ -50,10 +45,10 @@ public class GameMaster {
         int offset = 0;
         for (Integer key : players.keySet()) {
             final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.add(new GotCards(handCards, players.get(key), id));
+            log().add(new GotCards(handCards, players.get(key), id));
             games.get(id).players().get(key).cardsAvailable().addAll(handCards);
 
-            log.add(new GotCoins(players.get(key), STARTING_COINS, id));
+            log().add(new GotCoins(players.get(key), STARTING_COINS, id));
             games.get(id).players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
@@ -96,7 +91,7 @@ public class GameMaster {
     public Map<Player, List<Card>> playedCards(Game game) {
         Map<Player, List<Card>> playedCards = new HashMap<>();
         Map<Player, List<Card>> cardsPerRound = new HashMap<>();
-        for (Event event : log) {
+        for (Event event : log()) {
             if (event.gameId() != game.id()) continue;
             if (event instanceof CardPlayed) {
                 final Player player = ((CardPlayed) event).player();
@@ -139,15 +134,15 @@ public class GameMaster {
             throw new CardNotAffordableException();
         }
 
-        log.add(new CardPlayed(card, player, game));
-        log.add(card.process(player, game));
+        log().add(new CardPlayed(card, player, game));
+        log().add(card.process(player, game));
         if (isRoundCompleted(game)) {
             roundCompleted(game);
         }
     }
 
     private void roundCompleted(Game game) {
-        log.add(new RoundCompleted(game));
+        log().add(new RoundCompleted(game));
 
         // at the end of the game we don't need to hand cards to other players
         // last card is discarded
@@ -163,7 +158,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(i), game));
 
                 // assign current to next
-                log.add(new GotCards(current, game.players().get(i), game.id()));
+                log().add(new GotCards(current, game.players().get(i), game.id()));
 
                 current = next;
             }
@@ -178,7 +173,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(nextIndex), game));
 
                 // assign current to next
-                log.add(new GotCards(current, game.players().get(nextIndex), game.id()));
+                log().add(new GotCards(current, game.players().get(nextIndex), game.id()));
 
                 current = next;
             }
@@ -186,11 +181,11 @@ public class GameMaster {
     }
 
     public Card lastPlayed(Player player, Game game) {
-        for (int i = log.size() - 1; i >= 0; i -= 1) {
-            if (log.get(i) instanceof CardPlayed
-                    && log.get(i).gameId() == game.id()
-                    && ((CardPlayed) log.get(i)).player() == player) {
-                return ((CardPlayed) log.get(i)).selectedCard();
+        for (int i = log().size() - 1; i >= 0; i -= 1) {
+            if (log().get(i) instanceof CardPlayed
+                    && log().get(i).gameId() == game.id()
+                    && ((CardPlayed) log().get(i)).player() == player) {
+                return ((CardPlayed) log().get(i)).selectedCard();
             }
         }
         return null;
@@ -205,15 +200,15 @@ public class GameMaster {
     private void ageCompleted(Game game) {
         final Card.Age activeAge = activeAge(game);
         final Card.Age nextAge = activeAge == Card.Age.One ? Card.Age.Two : Card.Age.Three;
-        log.add(new AgeCompleted(game, activeAge));
+        log().add(new AgeCompleted(game, activeAge));
 
-        List<Card> ageCards = ((GameCreated) log.get(0)).cards().stream()
+        List<Card> ageCards = ((GameCreated) log().get(0)).cards().stream()
                 .filter(card -> card.age() == nextAge)
                 .collect(Collectors.toList());
         int offset = 0;
         for (Integer key : game.players().keySet()) {
             final List<Card> handCards = ageCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.add(new GotCards(handCards, game.players().get(key), game.id()));
+            log().add(new GotCards(handCards, game.players().get(key), game.id()));
             offset += INITIAL_CARDS_PER_PLAYER;
         }
 
@@ -230,7 +225,7 @@ public class GameMaster {
     }
 
     public void completeGame(Game game) {
-        log.add(new GameCompleted(game));
+        log().add(new GameCompleted(game));
     }
 
     public boolean isGameCompleted(Game game) {
@@ -278,7 +273,7 @@ public class GameMaster {
     }
 
     private Stream<Event> currentGameStream(final Game game) {
-        return log.stream().filter(event -> game.id() == event.gameId());
+        return log().stream().filter(event -> game.id() == event.gameId());
     }
 
     private Stream<CardPlayed> cardsPlayedByPlayer(final Player player, final Game game) {
