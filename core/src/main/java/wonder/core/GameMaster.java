@@ -5,9 +5,11 @@ import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GameMaster {
     private static final int INITIAL_CARDS_PER_PLAYER = 7;
@@ -49,7 +51,7 @@ public class GameMaster {
     }
 
     Card.Age activeAge(Game game) {
-        final List<Card.Age> ages = currentGameStream(game)
+        final List<Card.Age> ages = log.byGame(game)
                 .filter(event -> event instanceof AgeCompleted)
                 .map(event -> ((AgeCompleted) event).age())
                 .collect(Collectors.toList());
@@ -61,7 +63,7 @@ public class GameMaster {
 
     public List<Card> cardsAvailable(Player player, Game game) {
         List<Card> availableCards = new ArrayList<>();
-        currentGameStream(game).forEach(event -> {
+        log.byGame(game).forEach(event -> {
             if (event instanceof GotCards && ((GotCards) event).player().equals(player)) {
                 availableCards.clear();
                 availableCards.addAll(((GotCards) event).cards());
@@ -93,7 +95,7 @@ public class GameMaster {
 
 //        game.players().forEach((integer, player) -> {
 //            playedCards.put(player, new ArrayList<>());
-//            cardsPlayedByPlayer(player, game).forEach(cardPlayed -> {
+//            log.byCardByPlayer(player, game).forEach(cardPlayed -> {
 //                playedCards.get(player).add(cardPlayed.selectedCard());
 //            });
 //        });
@@ -177,7 +179,7 @@ public class GameMaster {
     }
 
     public boolean isRoundCompleted(Game game) {
-        return 0 == currentGameStream(game)
+        return 0 == log.byGame(game)
                 .filter(event -> event instanceof CardPlayed)
                 .count() % game.players().size();
     }
@@ -203,7 +205,7 @@ public class GameMaster {
     }
 
     public boolean isAgeCompleted(Game game) {
-        final long count = currentGameStream(game)
+        final long count = log.byGame(game)
                 .filter(event -> event instanceof RoundCompleted)
                 .count();
         return count != 0 && 0 == count % ROUNDS_PER_AGE;
@@ -214,16 +216,16 @@ public class GameMaster {
     }
 
     public boolean isGameCompleted(Game game) {
-        return AGES_PER_GAME == currentGameStream(game)
+        return AGES_PER_GAME == log.byGame(game)
                 .filter(event -> event instanceof AgeCompleted)
                 .count();
     }
 
     public boolean isPlayerAllowedToPlay(Player player, Game game) {
-        final long numberOfRoundsCompleted = currentGameStream(game)
+        final long numberOfRoundsCompleted = log.byGame(game)
                 .filter(event -> event instanceof RoundCompleted)
                 .count();
-        final long cardsPlayedByPlayer = cardsPlayedByPlayer(player, game).count();
+        final long cardsPlayedByPlayer = log.byCardByPlayer(player, game).count();
         return numberOfRoundsCompleted >= cardsPlayedByPlayer;
     }
 
@@ -234,7 +236,7 @@ public class GameMaster {
     }
 
     public int coinsAvailable(Player player, Game game) {
-        return currentGameStream(game)
+        return log.byGame(game)
                 .filter(event -> event instanceof GotCoins)
                 .filter(event -> ((GotCoins) event).player() == player)
                 .mapToInt(event -> ((GotCoins)event).amount())
@@ -243,7 +245,7 @@ public class GameMaster {
 
     private ResourcePool resourcesAvailable(Player player, Game game) {
         ResourcePool pool = new ResourcePool();
-        currentGameStream(game)
+        log.byGame(game)
                 .filter(event -> event instanceof GotResources)
                 .filter(event -> ((GotResources) event).player() == player)
                 .map(event -> (GotResources) event)
@@ -253,18 +255,7 @@ public class GameMaster {
 
     public boolean isFree(Card card, Player player, Game game) {
         // we have to check like this because of the two trading posts
-        return cardsPlayedByPlayer(player, game)
+        return log.byCardByPlayer(player, game)
                 .anyMatch(cardPlayed -> card.freeConstruction().isAssignableFrom(cardPlayed.selectedCard().getClass()));
-    }
-
-    private Stream<Event> currentGameStream(final Game game) {
-        return log().stream().filter(event -> game.id() == event.gameId());
-    }
-
-    private Stream<CardPlayed> cardsPlayedByPlayer(final Player player, final Game game) {
-        return currentGameStream(game)
-                .filter(event -> event instanceof CardPlayed)
-                .map(event -> (CardPlayed) event)
-                .filter(event -> event.player() == player);
     }
 }

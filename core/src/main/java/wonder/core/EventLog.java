@@ -1,10 +1,12 @@
 package wonder.core;
 
+import wonder.core.Events.CardPlayed;
 import wonder.core.Events.GameCreated;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class EventLog {
     private final List<Event> log;
@@ -24,5 +26,17 @@ public class EventLog {
                 .filter(event -> event.gameId() == gameId)
                 .findFirst();
         return gameCreated.isPresent() ? gameCreated.get().game() : null;
+    }
+
+
+    public Stream<Event> byGame(final Game game) {
+        return log().stream().filter(event -> game.id() == event.gameId());
+    }
+
+    public Stream<CardPlayed> byCardByPlayer(final Player player, final Game game) {
+        return byGame(game)
+                .filter(event -> event instanceof CardPlayed)
+                .map(event -> (CardPlayed) event)
+                .filter(event -> event.player() == player);
     }
 }
