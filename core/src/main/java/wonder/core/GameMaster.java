@@ -17,23 +17,15 @@ public class GameMaster {
     private static final int ROUNDS_PER_AGE = 6;
     private static final int AGES_PER_GAME = 3;
 
-    private GameSetup setup;
     private EventLog log;
 
-    public GameMaster(GameSetup setup, EventLog log) {
-        this.setup = setup;
+    public GameMaster(EventLog log) {
         this.log = log;
     }
 
-    public List<Event> log() {
-        return log.log();
-    }
-
-    public void initiateGame(Map<Integer, Player> players, Integer id) {
-        List<Card> cards = setup.setupGame(players.size());
-
-        final Game game = new Game(id, players, cards);
-        log().add(new GameCreated(game, players, cards));
+    public void initiateGame(List<Card> cards, Map<Integer, Player> players, Integer gameId) {
+        final Game game = new Game(gameId, players, cards);
+        log.log().add(new GameCreated(game, players, cards));
 
         List<Card> ageOneCards = cards.stream()
                 .filter(card -> card.age() == Card.Age.One)
@@ -41,10 +33,10 @@ public class GameMaster {
         int offset = 0;
         for (Integer key : players.keySet()) {
             final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log().add(new GotCards(handCards, players.get(key), id));
+            log.log().add(new GotCards(handCards, players.get(key), gameId));
             game.players().get(key).cardsAvailable().addAll(handCards);
 
-            log().add(new GotCoins(players.get(key), STARTING_COINS, id));
+            log.log().add(new GotCoins(players.get(key), STARTING_COINS, gameId));
             game.players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
@@ -78,7 +70,7 @@ public class GameMaster {
     public Map<Player, List<Card>> playedCards(Game game) {
         Map<Player, List<Card>> playedCards = new HashMap<>();
         Map<Player, List<Card>> cardsPerRound = new HashMap<>();
-        for (Event event : log()) {
+        for (Event event : log.log()) {
             if (event.gameId() != game.id()) continue;
             if (event instanceof CardPlayed) {
                 final Player player = ((CardPlayed) event).player();
@@ -92,14 +84,6 @@ public class GameMaster {
                 cardsPerRound.clear();
             }
         }
-
-//        game.players().forEach((integer, player) -> {
-//            playedCards.put(player, new ArrayList<>());
-//            log.byCardByPlayer(player, game).forEach(cardPlayed -> {
-//                playedCards.get(player).add(cardPlayed.selectedCard());
-//            });
-//        });
-
         return playedCards;
     }
 
@@ -121,15 +105,15 @@ public class GameMaster {
             throw new CardNotAffordableException();
         }
 
-        log().add(new CardPlayed(card, player, game));
-        log().add(card.process(player, game));
+        log.log().add(new CardPlayed(card, player, game));
+        log.log().add(card.process(player, game));
         if (isRoundCompleted(game)) {
             roundCompleted(game);
         }
     }
 
     private void roundCompleted(Game game) {
-        log().add(new RoundCompleted(game));
+        log.log().add(new RoundCompleted(game));
 
         // at the end of the game we don't need to hand cards to other players
         // last card is discarded
@@ -145,7 +129,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(i), game));
 
                 // assign current to next
-                log().add(new GotCards(current, game.players().get(i), game.id()));
+                log.log().add(new GotCards(current, game.players().get(i), game.id()));
 
                 current = next;
             }
@@ -160,7 +144,7 @@ public class GameMaster {
                 next.remove(lastPlayed(game.players().get(nextIndex), game));
 
                 // assign current to next
-                log().add(new GotCards(current, game.players().get(nextIndex), game.id()));
+                log.log().add(new GotCards(current, game.players().get(nextIndex), game.id()));
 
                 current = next;
             }
@@ -168,11 +152,11 @@ public class GameMaster {
     }
 
     public Card lastPlayed(Player player, Game game) {
-        for (int i = log().size() - 1; i >= 0; i -= 1) {
-            if (log().get(i) instanceof CardPlayed
-                    && log().get(i).gameId() == game.id()
-                    && ((CardPlayed) log().get(i)).player() == player) {
-                return ((CardPlayed) log().get(i)).selectedCard();
+        for (int i = log.log().size() - 1; i >= 0; i -= 1) {
+            if (log.log().get(i) instanceof CardPlayed
+                    && log.log().get(i).gameId() == game.id()
+                    && ((CardPlayed) log.log().get(i)).player() == player) {
+                return ((CardPlayed) log.log().get(i)).selectedCard();
             }
         }
         return null;
@@ -187,15 +171,15 @@ public class GameMaster {
     private void ageCompleted(Game game) {
         final Card.Age activeAge = activeAge(game);
         final Card.Age nextAge = activeAge == Card.Age.One ? Card.Age.Two : Card.Age.Three;
-        log().add(new AgeCompleted(game, activeAge));
+        log.log().add(new AgeCompleted(game, activeAge));
 
-        List<Card> ageCards = ((GameCreated) log().get(0)).cards().stream()
+        List<Card> ageCards = ((GameCreated) log.log().get(0)).cards().stream()
                 .filter(card -> card.age() == nextAge)
                 .collect(Collectors.toList());
         int offset = 0;
         for (Integer key : game.players().keySet()) {
             final List<Card> handCards = ageCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log().add(new GotCards(handCards, game.players().get(key), game.id()));
+            log.log().add(new GotCards(handCards, game.players().get(key), game.id()));
             offset += INITIAL_CARDS_PER_PLAYER;
         }
 
@@ -212,7 +196,7 @@ public class GameMaster {
     }
 
     public void completeGame(Game game) {
-        log().add(new GameCompleted(game));
+        log.log().add(new GameCompleted(game));
     }
 
     public boolean isGameCompleted(Game game) {

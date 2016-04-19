@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 public class GameSetup {
 
-    List<Card> setupGame(final int numberOfPlayers) {
+    public List<Card> setupGame(final int numberOfPlayers) {
         if (numberOfPlayers < 3 || numberOfPlayers > 7) {
             throw new IllegalArgumentException("Number of players allowed 3 - 7");
         }

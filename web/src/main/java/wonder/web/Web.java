@@ -13,12 +13,13 @@ public class Web {
     private static EventLog log = new EventLog();
 
     public static void main(String[] args) {
-        GameMaster master = new GameMaster(new GameSetup(), log);
+        GameMaster master = new GameMaster(log);
         Map<Integer, Player> players = new HashMap<>();
         players.put(1, new Player(1, "Player 1", new Wonder("Babylon")));
         players.put(2, new Player(2, "Player 2", new Wonder("Olympia")));
         players.put(3, new Player(3, "Player 3", new Wonder("Rhodos")));
-        master.initiateGame(players, 1);
+        final GameSetup gameSetup = new GameSetup();
+        master.initiateGame(gameSetup.setupGame(3), players, 1);
 
         put("/play/:cardIndex/:playerId/:gameId", (req, res) -> {
             final int playerId = Integer.valueOf(req.params(":playerId"));
