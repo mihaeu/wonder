@@ -13,6 +13,9 @@ public class Web {
     private static EventLog log = new EventLog();
 
     public static void main(String[] args) {
+
+        staticFileLocation("/public");
+
         GameMaster master = new GameMaster(log);
         Map<Integer, Player> players = new HashMap<>();
         players.put(1, new Player(1, "Player 1", new Wonder("Babylon")));
@@ -49,9 +52,15 @@ public class Web {
             return "{\"coins\":" + master.coinsAvailable(players.get(playerId), log.gameById(gameId)) + "}";
         });
 
+        get("/score/:gameId", (req, res) -> {
+            res.type("text/json");
+            final int gameId = Integer.valueOf(req.params(":gameId"));
+            return master.finalScore(log.gameById(gameId));
+        });
+
         exception(Exception.class, (e, request, response) -> {
             response.status(403);
-            response.body(e.toString());
+            response.body("{\"error\":\"" + e.toString() + "\"}");
         });
     }
 
@@ -60,28 +69,9 @@ public class Web {
         @Override
         public String render(Object model) {
             if (model instanceof List) {
-                final List cards = (List) model;
-                if (!cards.isEmpty() && cards.get(0) instanceof Card) {
-                    return render((List<Card>) cards);
-                }
-            }
-            if (model instanceof Map) {
-                StringBuilder builder = new StringBuilder();
-                final Map<Player, List<Card>> playerListMap = (Map<Player, List<Card>>) model;
-                if (playerListMap.isEmpty()) {
-                    return "{}";
-                }
-                builder.append("{\"players\":");
-                for (Player player : playerListMap.keySet()) {
-                    builder.append("{");
-                    builder.append("\"");
-                    builder.append(player.id());
-                    builder.append("\":");
-                    builder.append(render(playerListMap.get(player)));
-                    builder.append("},");
-                }
-                builder.append("}");
-                return builder.toString();
+                return render((List<Card>) model);
+            } else if (model instanceof Map) {
+                return render((Map<Player, List<Card>>) model);
             }
             return model.toString();
         }
@@ -92,6 +82,7 @@ public class Web {
             for (int i = 0, count = cards.size(); i < count; i += 1) {
                 builder.append("{\"name\":\"");
                 builder.append(cards.get(i).name());
+                builder.append("\",\"type\":\"" + cards.get(i).type().toString());
                 builder.append("\"}");
                 if (i + 1 < count) builder.append(",");
             }
@@ -99,5 +90,22 @@ public class Web {
             return builder.toString();
         }
 
+        public String render(Map<Player, List<Card>> model) {
+            StringBuilder builder = new StringBuilder();
+            if (model.isEmpty()) {
+                return "{}";
+            }
+            builder.append("{\"players\":");
+            for (Player player : model.keySet()) {
+                builder.append("{");
+                builder.append("\"");
+                builder.append(player.id());
+                builder.append("\":");
+                builder.append(render(model.get(player)));
+                builder.append("},");
+            }
+            builder.append("}");
+            return builder.toString();
+        }
     }
 }

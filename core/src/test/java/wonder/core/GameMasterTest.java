@@ -2,10 +2,10 @@ package wonder.core;
 
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import wonder.core.Cards.*;
 import wonder.core.Events.*;
-import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
-import static wonder.core.Card.Age.One;
-import static wonder.core.Card.Age.Three;
-import static wonder.core.Card.Age.Two;
+import static wonder.core.Card.Age.*;
 import static wonder.core.Resources.Type.Stone;
 
 public class GameMasterTest {
@@ -35,9 +33,8 @@ public class GameMasterTest {
 
         setup = new GameSetup();
         players = mockPlayers(3);
-        master.initiateGame(setup.setupGame(3), players, 1);
+        game = master.initiateGame(setup.setupGame(3), players, 1);
 
-        game = log.gameById(1);
         firstPlayer = players.get(0);
     }
 
@@ -186,12 +183,37 @@ public class GameMasterTest {
     }
 
     @Test
-    public void paysCoinsForCardWithCoinCost()
-            throws NotAllowedToPlayException, CardNotAffordableException, CardNotAvailableException {
+    public void paysCoinsForCardWithCoinCost() throws Exception {
         assertEquals(3, master.coinsAvailable(firstPlayer, game));
         log.add(new GotCards(Arrays.asList(new SawMill(3)), firstPlayer, game, One));
         master.cardPlayed(new SawMill(3), firstPlayer, game);
         assertEquals(2, master.coinsAvailable(firstPlayer, game));
+    }
+
+    @Test
+    @Ignore
+    public void cannotPlayTheSameCardTwice() {
+        fail("Not implemented");
+    }
+
+    @Test
+    public void countsVictoryPoints() throws Exception {
+        final PawnShop pawnShop = new PawnShop(3);
+        final Altar altar = new Altar(3);
+        final Theater theater = new Theater(3);
+        log.add(new GotCards(Arrays.asList(pawnShop, altar, theater), firstPlayer, game, One));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
+
+        master.cardPlayed(pawnShop, firstPlayer, game);
+        log.add(new RoundCompleted(Player.EVERY, game, One));
+        assertTrue(3 == master.finalScore(game).get(firstPlayer));
+
+        master.cardPlayed(altar, firstPlayer, game);
+        log.add(new RoundCompleted(Player.EVERY, game, One));
+        assertTrue(5 == master.finalScore(game).get(firstPlayer));
+
+        master.cardPlayed(theater, firstPlayer, game);
+        assertTrue(7 ==  master.finalScore(game).get(firstPlayer));
     }
 
     private Map<Integer, Player> mockPlayers(int number) {
@@ -206,7 +228,7 @@ public class GameMasterTest {
         Card affordableCard = findAffordableCard(master, game, player);
         try {
             master.cardPlayed(affordableCard, player, game);
-        } catch (NotAllowedToPlayException | CardNotAvailableException | CardNotAffordableException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -214,6 +236,7 @@ public class GameMasterTest {
     private Card findAffordableCard(GameMaster master, Game game, Player player) {
         return master.cardsAvailable(player, game).stream()
                 .filter(card -> master.isAffordable(card, player, game))
+                .filter(card -> master.cardNotPlayedBefore(card, player, game))
                 .findFirst()
                 .get();
     }

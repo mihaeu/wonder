@@ -44,8 +44,8 @@ public class EventLog {
     public Stream<CardPlayed> byCardByPlayer(final Player player, final Game game) {
         return byGame(game)
                 .filter(event -> event instanceof CardPlayed)
-                .map(event -> (CardPlayed) event)
-                .filter(event -> event.player() == player);
+                .filter(event -> event.player() == player)
+                .map(event -> (CardPlayed) event);
     }
 
     public Stream<Event> byEvent(final Class event, final Player player, final Game game) {

@@ -2,6 +2,7 @@ package wonder.core;
 
 import wonder.core.Card.Age;
 import wonder.core.Events.*;
+import wonder.core.Exceptions.CardAlreadyPlayedException;
 import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
@@ -26,7 +27,7 @@ public class GameMaster {
         this.log = log;
     }
 
-    public void initiateGame(List<Card> cards, Map<Integer, Player> players, Integer gameId) {
+    public Game initiateGame(List<Card> cards, Map<Integer, Player> players, Integer gameId) {
         final Game game = new Game(gameId, players, cards);
         log.add(new GameCreated(cards, Player.EVERY, game, One));
 
@@ -43,6 +44,7 @@ public class GameMaster {
             game.players().get(key).addCoins(STARTING_COINS);
             offset += INITIAL_CARDS_PER_PLAYER;
         }
+        return game;
     }
 
     Age activeAge(Game game) {
@@ -92,12 +94,18 @@ public class GameMaster {
     }
 
     public void cardPlayed(int cardPlayedIndex, Player player, Game game)
-            throws NotAllowedToPlayException, CardNotAffordableException, CardNotAvailableException {
+            throws NotAllowedToPlayException,
+            CardNotAffordableException,
+            CardNotAvailableException,
+            CardAlreadyPlayedException {
         cardPlayed(cardsAvailable(player, game).get(cardPlayedIndex), player, game);
     }
 
     public void cardPlayed(Card card, Player player, Game game)
-            throws NotAllowedToPlayException, CardNotAvailableException, CardNotAffordableException {
+            throws NotAllowedToPlayException,
+                CardNotAvailableException,
+                CardNotAffordableException,
+                CardAlreadyPlayedException {
         if (!isPlayerAllowedToPlay(player, game)) {
             throw new NotAllowedToPlayException();
         }
@@ -108,13 +116,27 @@ public class GameMaster {
                 && !isAffordable(card, player, game)) {
             throw new CardNotAffordableException();
         }
+        if (!cardNotPlayedBefore(card, player, game)) {
+            throw new CardAlreadyPlayedException();
+        }
 
         log.add(new CardPlayed(card, player, game, activeAge(game)));
-        if (card.coinCost() > 0) log.add(new PayedCoins(card.coinCost(), player, game, activeAge(game)));
+        if (card.coinCost() > 0) {
+            log.add(new PayedCoins(card.coinCost(), player, game, activeAge(game)));
+        }
         log.add(card.process(player, game, activeAge(game)));
+
         if (isRoundCompleted(game)) {
             roundCompleted(game);
         }
+    }
+
+    public boolean cardNotPlayedBefore(Card card, Player player, Game game) {
+        return true;
+//        final long count = log.byCardByPlayer(player, game)
+//                .filter(cardPlayed -> cardPlayed.card() == card)
+//                .count();
+//        return count == 0;
     }
 
     private void roundCompleted(Game game) {
@@ -168,9 +190,7 @@ public class GameMaster {
     }
 
     public boolean isRoundCompleted(Game game) {
-        return 0 == log.byGame(game)
-                .filter(event -> event instanceof CardPlayed)
-                .count() % game.players().size();
+        return 0 == log.byEvent(CardPlayed.class, game).count() % game.players().size();
     }
 
     private void ageCompleted(Game game) {
@@ -194,6 +214,21 @@ public class GameMaster {
         }
     }
 
+    public Map<Player, Integer> finalScore(Game game) throws Exception {
+        if (!isGameCompleted(game)) {
+            throw new Exception("Game is not yet completed");
+        }
+
+        Map<Player, Integer> finalScore = new HashMap<>();
+        game.players().forEach((playerId, player) -> {
+            finalScore.put(player, log.byEvent(GotVictoryPoints.class, player, game)
+                .mapToInt(event -> ((GotVictoryPoints) event).amount())
+                .sum()
+            );
+        });
+        return finalScore;
+    }
+
     public boolean isAgeCompleted(Game game) {
         final long count = log.byEvent(RoundCompleted.class, game).count();
         return count != 0 && 0 == count % ROUNDS_PER_AGE;
@@ -204,7 +239,8 @@ public class GameMaster {
     }
 
     public boolean isGameCompleted(Game game) {
-        return AGES_PER_GAME == log.byEvent(AgeCompleted.class, Player.EVERY, game).count();
+        return log.byEvent(GameCompleted.class, game).count() == 1 ||
+                AGES_PER_GAME == log.byEvent(AgeCompleted.class, Player.EVERY, game).count();
     }
 
     public boolean isPlayerAllowedToPlay(Player player, Game game) {
