@@ -185,6 +185,15 @@ public class GameMasterTest {
         assertTrue(master.isAffordable(new SawMill(3), firstPlayer, game));
     }
 
+    @Test
+    public void paysCoinsForCardWithCoinCost()
+            throws NotAllowedToPlayException, CardNotAffordableException, CardNotAvailableException {
+        assertEquals(3, master.coinsAvailable(firstPlayer, game));
+        log.add(new GotCards(Arrays.asList(new SawMill(3)), firstPlayer, game, One));
+        master.cardPlayed(new SawMill(3), firstPlayer, game);
+        assertEquals(2, master.coinsAvailable(firstPlayer, game));
+    }
+
     private Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {

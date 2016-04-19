@@ -110,6 +110,7 @@ public class GameMaster {
         }
 
         log.add(new CardPlayed(card, player, game, activeAge(game)));
+        if (card.coinCost() > 0) log.add(new PayedCoins(card.coinCost(), player, game, activeAge(game)));
         log.add(card.process(player, game, activeAge(game)));
         if (isRoundCompleted(game)) {
             roundCompleted(game);
@@ -219,6 +220,8 @@ public class GameMaster {
 
     public int coinsAvailable(Player player, Game game) {
         return log.byEvent(GotCoins.class, player, game)
+                .mapToInt(event -> ((GotCoins)event).amount())
+                .sum() - log.byEvent(PayedCoins.class, player, game)
                 .mapToInt(event -> ((GotCoins)event).amount())
                 .sum();
     }
