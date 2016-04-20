@@ -7,10 +7,7 @@ import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static wonder.core.Card.Age.*;
@@ -140,40 +137,48 @@ public class GameMaster {
     }
 
     private void roundCompleted(Game game) {
-        log.add(new RoundCompleted(Player.EVERY, game, activeAge(game)));
+        final Age activeAge = activeAge(game);
+        log.add(new RoundCompleted(Player.EVERY, game, activeAge));
 
         // at the end of the game we don't need to hand cards to other players
         // last card is discarded
         if (isAgeCompleted(game)) {
             ageCompleted(game);
-        // second age counter clockwise
-        } else if (activeAge(game) == Two) {
-            List<Card> current = game.players().get(0).cardsAvailable();
-            current.remove(lastPlayed(game.players().get(0), game));
-            List<Card> next;
+        } else {
+            handCardsToNextPlayers(game, activeAge);
+        }
+    }
+
+    private void handCardsToNextPlayers(Game game, Age activeAge) {
+        Integer[] keys = game.players().keySet().toArray(new Integer[game.players().size()]);
+        List<Card> currentCards = cardsAvailable(game.players().get(keys[0]), game);
+        currentCards.remove(lastPlayed(game.players().get(keys[0]), game));
+
+        Player nextPlayer;
+        List<Card> nextCards;
+
+        // 2nd age counter-clockwise
+        if (activeAge == Two) {
             for (int i = game.players().size() - 1; i >= 0; i -= 1) {
-                next = game.players().get(i).cardsAvailable();
-                next.remove(lastPlayed(game.players().get(i), game));
+                nextPlayer = game.players().get(keys[i]);
+                nextCards = nextPlayer.cardsAvailable();
+                nextCards.remove(lastPlayed(nextPlayer, game));
 
-                // assign current to next
-                log.add(new GotCards(current, game.players().get(i), game, activeAge(game)));
+                log.add(new GotCards(currentCards, nextPlayer, game, activeAge));
 
-                current = next;
+                currentCards = nextCards;
             }
         // 1st and 3rd age clockwise
         } else {
-            List<Card> current = game.players().get(0).cardsAvailable();
-            current.remove(lastPlayed(game.players().get(0), game));
-            List<Card> next;
-            for (int i = 0, count = game.players().size(); i < count; i += 1) {
-                final int nextIndex = i + 1 < count ? i + 1 : 0;
-                next = game.players().get(nextIndex).cardsAvailable();
-                next.remove(lastPlayed(game.players().get(nextIndex), game));
+            for (int i = 0; i < keys.length; i += 1) {
+                int nextIndex = i + 1 < keys.length ? i + 1 : 0;
+                nextPlayer = game.players().get(keys[nextIndex]);
+                nextCards = cardsAvailable(nextPlayer, game);
+                nextCards.remove(lastPlayed(nextPlayer, game));
 
-                // assign current to next
-                log.add(new GotCards(current, game.players().get(nextIndex), game, activeAge(game)));
+                log.add(new GotCards(currentCards, nextPlayer, game, activeAge));
 
-                current = next;
+                currentCards = nextCards;
             }
         }
     }

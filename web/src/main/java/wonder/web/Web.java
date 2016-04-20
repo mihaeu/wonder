@@ -58,9 +58,16 @@ public class Web {
             return master.finalScore(log.gameById(gameId));
         });
 
+        get("/game/:gameId", (req, res) -> {
+            res.type("text/json");
+
+            return "";
+        });
+
         exception(Exception.class, (e, request, response) -> {
             response.status(403);
             response.body("{\"error\":\"" + e.toString() + "\"}");
+            e.printStackTrace();
         });
     }
 

@@ -60,7 +60,6 @@ public class EventLog {
                 .filter(otherEvent -> event == otherEvent.getClass());
     }
 
-    @SuppressWarnings("unchecked")
     Stream<Event> reverse() {
         List<Event> temp = log.stream().collect(Collectors.toList());
         return IntStream.range(0, temp.size())
