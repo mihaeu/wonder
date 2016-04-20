@@ -6,6 +6,8 @@ import wonder.core.Events.GameCreated;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class EventLog {
@@ -56,5 +58,12 @@ public class EventLog {
     public Stream<Event> byEvent(final Class event, final Game game) {
         return byGame(game)
                 .filter(otherEvent -> event == otherEvent.getClass());
+    }
+
+    @SuppressWarnings("unchecked")
+    Stream<Event> reverse() {
+        List<Event> temp = log.stream().collect(Collectors.toList());
+        return IntStream.range(0, temp.size())
+                .mapToObj(value -> temp.get(temp.size() - value - 1));
     }
 }
