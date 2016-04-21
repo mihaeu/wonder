@@ -1,7 +1,7 @@
 package wonder.core.Cards;
 
-import wonder.core.Card;
-import wonder.core.ResourcePool;
+import wonder.core.*;
+import wonder.core.Events.GotScienceSymbol;
 
 import static wonder.core.Resources.Type.Glass;
 import static wonder.core.Resources.Type.Ore;
@@ -9,5 +9,10 @@ import static wonder.core.Resources.Type.Ore;
 public class Dispensary extends Card {
     public Dispensary(int minPlayers) {
         super("Dispensary", Type.Green, Age.Two, minPlayers, ResourcePool.cost(Ore, Ore, Glass), Apothecary.class);
+    }
+
+    @Override
+    public Event process(Player player, Game game, Age age) {
+        return new GotScienceSymbol(ScienceSymbols.Compass, player, game, age);
     }
 }

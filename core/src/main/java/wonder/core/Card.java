@@ -89,6 +89,15 @@ public abstract class Card {
         Gray
     }
 
+    public enum ScienceSymbols {
+        StoneTablet,
+        Cogs,
+        Compass,
+        OptionalStoneTablet,
+        OptionalCogs,
+        OptionalCompass
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

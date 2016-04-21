@@ -246,12 +246,17 @@ public class GameMaster {
 
         Map<Player, Integer> finalScore = new HashMap<>();
         game.players().forEach((playerId, player) -> {
-            finalScore.put(player, log.byEvent(GotVictoryPoints.class, player, game)
-                .mapToInt(event -> ((GotVictoryPoints) event).amount())
-                .sum()
-            );
+            int score = log.byEvent(GotVictoryPoints.class, player, game)
+                    .mapToInt(event -> ((GotVictoryPoints) event).amount())
+                    .sum();
+            score += scoreFromScienceCards(player, game);
+            finalScore.put(player, score);
         });
         return finalScore;
+    }
+
+    private int scoreFromScienceCards(Player player, Game game) {
+        return (int) log.byEvent(GotScienceSymbol.class, player, game).count();
     }
 
     public boolean isAgeCompleted(Game game) {
