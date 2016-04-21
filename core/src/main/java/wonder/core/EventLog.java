@@ -55,9 +55,10 @@ public class EventLog {
                 .filter(otherEvent -> event == otherEvent.getClass());
     }
 
+    @SuppressWarnings("unchecked")
     public Stream<Event> byEvent(final Class event, final Game game) {
         return byGame(game)
-                .filter(otherEvent -> event == otherEvent.getClass());
+                .filter(otherEvent -> event.isAssignableFrom(otherEvent.getClass()));
     }
 
     Stream<Event> reverse() {

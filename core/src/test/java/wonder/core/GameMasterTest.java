@@ -2,10 +2,11 @@ package wonder.core;
 
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import wonder.core.Cards.*;
 import wonder.core.Events.*;
+import wonder.core.Exceptions.CardAlreadyPlayedException;
+import wonder.core.Exceptions.CardNotAffordableException;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
@@ -187,10 +188,25 @@ public class GameMasterTest {
         assertEquals(2, master.coinsAvailable(firstPlayer, game));
     }
 
-    @Test
-    @Ignore
-    public void cannotPlayTheSameCardTwice() {
-        fail("Not implemented");
+    @Test(expected=CardAlreadyPlayedException.class)
+    public void cannotPlayTheSameCardTwice()
+            throws CardNotAvailableException,
+                CardNotAffordableException,
+                CardAlreadyPlayedException,
+                NotAllowedToPlayException {
+        Card card = findAffordableCard(master, game, firstPlayer).get();
+        master.cardPlayed(card, firstPlayer, game);
+        master.cardDiscarded(master.cardsAvailable(game.players().get(1), game).get(0), game.players().get(1), game);
+        master.cardDiscarded(master.cardsAvailable(game.players().get(2), game).get(0), game.players().get(2), game);
+
+        assertFalse("Card has been played before, so player is not allowed to play it again",
+                master.cardNotPlayedBefore(card, firstPlayer, game));
+
+        // give the card to the player again to simulate this situation
+        log.add(new GotCards(Arrays.asList(card), firstPlayer, game, One));
+
+        // this throws an exception
+        master.cardPlayed(card, firstPlayer, game);
     }
 
     @Test

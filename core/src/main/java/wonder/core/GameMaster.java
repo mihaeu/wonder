@@ -295,6 +295,7 @@ public class GameMaster {
         return pool;
     }
 
+    @SuppressWarnings("unchecked")
     public boolean isFree(Card card, Player player, Game game) {
         // we have to check like this because of the two trading posts
         return log.byCardByPlayer(player, game)
