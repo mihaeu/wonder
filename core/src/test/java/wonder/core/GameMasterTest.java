@@ -223,10 +223,10 @@ public class GameMasterTest {
 
     private void playAffordableCard(GameMaster master, Game game, Player player) {
         Optional<Card> affordableCard = findAffordableCard(master, game, player);
-        if (!affordableCard.isPresent()) {
-            master.cardDiscarded(master.cardsAvailable(player, game).get(0), player, game);
-        }
         try {
+            if (!affordableCard.isPresent()) {
+                master.cardDiscarded(master.cardsAvailable(player, game).get(0), player, game);
+            }
             master.cardPlayed(affordableCard.get(), player, game);
         } catch (Exception e) {
             e.printStackTrace();

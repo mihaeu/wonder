@@ -129,7 +129,16 @@ public class GameMaster {
         }
     }
 
-    public void cardDiscarded(Card card, Player player, Game game) {
+    public void cardDiscarded(Card card, Player player, Game game)
+            throws CardNotAvailableException,
+                NotAllowedToPlayException {
+        if (!isPlayerAllowedToPlay(player, game)) {
+            throw new NotAllowedToPlayException();
+        }
+        if (!cardsAvailable(player, game).contains(card)) {
+            throw new CardNotAvailableException();
+        }
+
         final Age age = activeAge(game);
         log.add(new CardDiscarded(card, player, game, age));
         log.add(new GotCoins(COINS_FOR_DISCARDING_A_CARD, player, game, age));
@@ -140,11 +149,11 @@ public class GameMaster {
     }
 
     public boolean cardNotPlayedBefore(Card card, Player player, Game game) {
-        return true;
-//        final long count = log.byCardByPlayer(player, game)
-//                .filter(cardPlayed -> cardPlayed.card() == card)
-//                .count();
-//        return count == 0;
+//        return true;
+        final long count = log.byCardByPlayer(player, game)
+                .filter(cardPlayed -> cardPlayed.card() == card)
+                .count();
+        return count == 0;
     }
 
     private void roundCompleted(Game game) {
