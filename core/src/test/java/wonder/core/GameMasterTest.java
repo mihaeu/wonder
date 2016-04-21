@@ -14,6 +14,9 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static wonder.core.Card.Age.*;
+import static wonder.core.Card.ScienceSymbols.Cogs;
+import static wonder.core.Card.ScienceSymbols.Compass;
+import static wonder.core.Card.ScienceSymbols.StoneTablet;
 import static wonder.core.Resources.Type.Stone;
 
 public class GameMasterTest {
@@ -227,6 +230,24 @@ public class GameMasterTest {
 
         master.cardPlayed(theater, firstPlayer, game);
         assertTrue(7 ==  master.finalScore(game).get(firstPlayer));
+    }
+
+    @Test
+    public void oneSetOfScienceSymbols() throws Exception {
+        log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Compass, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(StoneTablet, firstPlayer, game, One));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
+        assertEquals(10, master.finalScore(game).get(firstPlayer).intValue());
+    }
+
+    @Test
+    public void threeSetsOfScienceSymbols() throws Exception {
+        log.add(new GotScienceSymbol(Arrays.asList(Cogs, Cogs, Cogs), firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Arrays.asList(Compass, Compass, Compass), firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Arrays.asList(StoneTablet, StoneTablet, StoneTablet), firstPlayer, game, One));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
+        assertEquals(48, master.finalScore(game).get(firstPlayer).intValue());
     }
 
     private Map<Integer, Player> mockPlayers(int number) {

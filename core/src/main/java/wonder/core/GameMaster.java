@@ -1,6 +1,7 @@
 package wonder.core;
 
 import wonder.core.Card.Age;
+import wonder.core.Card.ScienceSymbols;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.CardAlreadyPlayedException;
 import wonder.core.Exceptions.CardNotAffordableException;
@@ -256,7 +257,21 @@ public class GameMaster {
     }
 
     private int scoreFromScienceCards(Player player, Game game) {
-        return (int) log.byEvent(GotScienceSymbol.class, player, game).count();
+        List<ScienceSymbols> symbols = new ArrayList<>();
+        log.byEvent(GotScienceSymbol.class, player, game)
+                .map(event -> (GotScienceSymbol) event)
+                .forEach(gotScienceSymbol -> gotScienceSymbol.symbols().forEach(symbols::add));
+        return calculateScienceCardCombination(symbols);
+    }
+
+    private int calculateScienceCardCombination(List<ScienceSymbols> symbols) {
+        int compassCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.Compass).count();
+        int stoneTabletCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.StoneTablet).count();
+        int cogsCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.Cogs).count();
+        return Math.min(Math.min(compassCount, stoneTabletCount), cogsCount) * 7
+                + compassCount * compassCount
+                + stoneTabletCount * stoneTabletCount
+                + cogsCount * cogsCount;
     }
 
     public boolean isAgeCompleted(Game game) {
