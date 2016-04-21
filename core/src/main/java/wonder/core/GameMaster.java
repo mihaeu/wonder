@@ -17,6 +17,7 @@ public class GameMaster {
     private static final int STARTING_COINS = 3;
     private static final int ROUNDS_PER_AGE = 6;
     private static final int AGES_PER_GAME = 3;
+    public static final int COINS_FOR_DISCARDING_A_CARD = 3;
 
     private EventLog log;
 
@@ -122,6 +123,16 @@ public class GameMaster {
             log.add(new PayedCoins(card.coinCost(), player, game, activeAge(game)));
         }
         log.add(card.process(player, game, activeAge(game)));
+
+        if (isRoundCompleted(game)) {
+            roundCompleted(game);
+        }
+    }
+
+    public void cardDiscarded(Card card, Player player, Game game) {
+        final Age age = activeAge(game);
+        log.add(new CardDiscarded(card, player, game, age));
+        log.add(new GotCoins(COINS_FOR_DISCARDING_A_CARD, player, game, age));
 
         if (isRoundCompleted(game)) {
             roundCompleted(game);

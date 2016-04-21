@@ -9,10 +9,7 @@ import wonder.core.Events.*;
 import wonder.core.Exceptions.CardNotAvailableException;
 import wonder.core.Exceptions.NotAllowedToPlayException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static wonder.core.Card.Age.*;
@@ -133,7 +130,7 @@ public class GameMasterTest {
     public void handsCardsToNextPlayer() {
 
         List<Card> firstHandOfFirstPlayer = master.cardsAvailable(firstPlayer, game);
-        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer));
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer).get());
         playAffordableCard(master, game, firstPlayer);
 
         playAffordableCard(master, game, players.get(1));
@@ -147,7 +144,7 @@ public class GameMasterTest {
         // simulate 2nd age
         log.log().add(new AgeCompleted(Player.EVERY, game, One));
 
-        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer));
+        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer).get());
         playAffordableCard(master, game, firstPlayer);
 
         playAffordableCard(master, game, players.get(1));
@@ -225,19 +222,21 @@ public class GameMasterTest {
     }
 
     private void playAffordableCard(GameMaster master, Game game, Player player) {
-        Card affordableCard = findAffordableCard(master, game, player);
+        Optional<Card> affordableCard = findAffordableCard(master, game, player);
+        if (!affordableCard.isPresent()) {
+            master.cardDiscarded(master.cardsAvailable(player, game).get(0), player, game);
+        }
         try {
-            master.cardPlayed(affordableCard, player, game);
+            master.cardPlayed(affordableCard.get(), player, game);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private Card findAffordableCard(GameMaster master, Game game, Player player) {
+    private Optional<Card> findAffordableCard(GameMaster master, Game game, Player player) {
         return master.cardsAvailable(player, game).stream()
                 .filter(card -> master.isAffordable(card, player, game))
                 .filter(card -> master.cardNotPlayedBefore(card, player, game))
-                .findFirst()
-                .get();
+                .findFirst();
     }
 }

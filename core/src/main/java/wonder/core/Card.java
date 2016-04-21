@@ -114,11 +114,11 @@ public abstract class Card {
 
     @Override
     public String toString() {
-        return "Card{" +
-                "minPlayers=" + minPlayers +
-                ", name='" + name + '\'' +
-                ", type=" + type +
-                ", age=" + age +
-                '}';
+        return "Card {" +
+                "\n\tminPlayers=" + minPlayers +
+                ", \n\tname='" + name + '\'' +
+                ", \n\ttype=" + type +
+                ", \n\tage=" + age +
+                "\n}";
     }
 }
