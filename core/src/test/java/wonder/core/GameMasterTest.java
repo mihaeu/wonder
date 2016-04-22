@@ -54,16 +54,16 @@ public class GameMasterTest {
 
     @Test
     public void afterStartPlayersHaveThreeCoins() {
-        assertEquals(3, log.gameById(1).players().get(0).coins());
-        assertEquals(3, game.players().get(1).coins());
-        assertEquals(3, game.players().get(2).coins());
+        assertEquals(3, master.coinsAvailable(game.players().get(0), game));
+        assertEquals(3, master.coinsAvailable(game.players().get(1), game));
+        assertEquals(3, master.coinsAvailable(game.players().get(2), game));
     }
 
     @Test
     public void afterStartPlayersHaveSevenCards() {
-        assertEquals(7, game.players().get(0).cardsAvailable().size());
-        assertEquals(7, game.players().get(1).cardsAvailable().size());
-        assertEquals(7, game.players().get(2).cardsAvailable().size());
+        assertEquals(7, master.cardsAvailable(players.get(0), game).size());
+        assertEquals(7, master.cardsAvailable(players.get(1), game).size());
+        assertEquals(7, master.cardsAvailable(players.get(2), game).size());
     }
 
     @Test
@@ -118,9 +118,9 @@ public class GameMasterTest {
     }
 
     @Test
-    public void listPlayedCards() {
+    public void listPlayedCards() throws CardNotAvailableException, NotAllowedToPlayException {
         for (int i = 0; i < 7; i += 1) {
-            playAffordableCard(master, game, players.get(i % 3));
+            master.cardDiscarded(master.cardsAvailable(players.get(i % 3), game).get(0), players.get(i % 3), game);
         }
         Map<Player, List<Card>> playedCards = master.playedCards(game);
         assertEquals("Played 3 cards, but last round not finished", 2, playedCards.get(firstPlayer).size());
@@ -129,11 +129,10 @@ public class GameMasterTest {
     }
 
     @Test
-    public void handsCardsToNextPlayer() {
-
+    public void handsCardsToNextPlayer() throws CardNotAvailableException, NotAllowedToPlayException {
         List<Card> firstHandOfFirstPlayer = master.cardsAvailable(firstPlayer, game);
-        firstHandOfFirstPlayer.remove(findAffordableCard(master, game, firstPlayer).get());
-        playAffordableCard(master, game, firstPlayer);
+        Card card = firstHandOfFirstPlayer.remove(0);
+        master.cardDiscarded(card, firstPlayer, game);
 
         playAffordableCard(master, game, players.get(1));
         playAffordableCard(master, game, players.get(2));

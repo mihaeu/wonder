@@ -31,19 +31,10 @@ public class GameMaster {
         final Game game = new Game(gameId, players, cards);
         log.add(new GameCreated(cards, Player.EVERY, game, One));
 
-        List<Card> ageOneCards = cards.stream()
-                .filter(card -> card.age() == One)
-                .collect(Collectors.toList());
-        int offset = 0;
-        for (Integer key : players.keySet()) {
-            final List<Card> handCards = ageOneCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
-            log.add(new GotCards(handCards, players.get(key), game, One));
-            game.players().get(key).cardsAvailable().addAll(handCards);
+        handOutAgeCards(game, One);
 
-            log.add(new GotCoins(STARTING_COINS, players.get(key), game, One));
-            game.players().get(key).addCoins(STARTING_COINS);
-            offset += INITIAL_CARDS_PER_PLAYER;
-        }
+        players.forEach((integer, player) -> log.add(new GotCoins(STARTING_COINS, player, game, One)));
+
         return game;
     }
 
@@ -182,7 +173,7 @@ public class GameMaster {
         if (activeAge == Two) {
             for (int i = game.players().size() - 1; i >= 0; i -= 1) {
                 nextPlayer = game.players().get(keys[i]);
-                nextCards = nextPlayer.cardsAvailable();
+                nextCards = cardsAvailable(nextPlayer, game);
                 nextCards.remove(lastPlayed(nextPlayer, game));
 
                 log.add(new GotCards(currentCards, nextPlayer, game, activeAge));
@@ -221,9 +212,17 @@ public class GameMaster {
 
     private void ageCompleted(Game game) {
         final Age activeAge = activeAge(game);
-        final Age nextAge = activeAge == One ? Two : Three;
         log.add(new AgeCompleted(Player.EVERY, game, activeAge));
 
+        handOutAgeCards(game, activeAge);
+
+        if (isGameCompleted(game)) {
+            completeGame(game);
+        }
+    }
+
+    private void handOutAgeCards(Game game, Age activeAge) {
+        final Age nextAge = activeAge == One ? Two : Three;
         final GameCreated gameCreated = (GameCreated) log.byGame(game).findFirst().get();
         List<Card> ageCards = gameCreated.cards().stream()
                 .filter(card -> card.age() == nextAge)
@@ -233,10 +232,6 @@ public class GameMaster {
             final List<Card> handCards = ageCards.subList(offset, offset + INITIAL_CARDS_PER_PLAYER);
             log.add(new GotCards(handCards, game.players().get(key), game, activeAge));
             offset += INITIAL_CARDS_PER_PLAYER;
-        }
-
-        if (isGameCompleted(game)) {
-            completeGame(game);
         }
     }
 
