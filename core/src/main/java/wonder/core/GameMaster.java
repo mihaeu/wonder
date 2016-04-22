@@ -3,10 +3,7 @@ package wonder.core;
 import wonder.core.Card.Age;
 import wonder.core.Card.ScienceSymbol;
 import wonder.core.Events.*;
-import wonder.core.Exceptions.CardAlreadyPlayedException;
-import wonder.core.Exceptions.CardNotAffordableException;
-import wonder.core.Exceptions.CardNotAvailableException;
-import wonder.core.Exceptions.NotAllowedToPlayException;
+import wonder.core.Exceptions.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +38,7 @@ public class GameMaster {
     Age activeAge(Game game) {
         final List<Age> ages = log.byGame(game)
                 .filter(event -> event instanceof AgeCompleted)
-                .map(event -> ((AgeCompleted) event).age())
+                .map(event -> event.age())
                 .collect(Collectors.toList());
         if (ages.isEmpty()) return One;
         if (ages.contains(Three)) return Three;
@@ -53,11 +50,11 @@ public class GameMaster {
     public List<Card> cardsAvailable(Player player, Game game) {
         List<Card> availableCards = new ArrayList<>();
         log.byGame(game).forEach(event -> {
-            if (event instanceof GotCards && ((GotCards) event).player().equals(player)) {
+            if (event instanceof GotCards && event.player().equals(player)) {
                 availableCards.clear();
                 availableCards.addAll(((GotCards) event).cards());
             }
-            if (event instanceof CardPlayed && ((CardPlayed) event).player().equals(player)) {
+            if (event instanceof CardPlayed && event.player().equals(player)) {
                 availableCards.remove(((CardPlayed) event).card());
             }
         });
@@ -70,7 +67,7 @@ public class GameMaster {
         for (Event event : log.log()) {
             if (event.game() != game) continue;
             if (event instanceof CardPlayed) {
-                final Player player = ((CardPlayed) event).player();
+                final Player player = event.player();
                 cardsPerRound.putIfAbsent(player, new ArrayList<>());
                 cardsPerRound.get(player).add(((CardPlayed) event).card());
             } else if (event instanceof RoundCompleted) {
@@ -92,7 +89,7 @@ public class GameMaster {
         cardPlayed(cardsAvailable(player, game).get(cardPlayedIndex), player, game);
     }
 
-    public void cardPlayed(Card card, Player player, Game game)
+    void cardPlayed(Card card, Player player, Game game)
             throws NotAllowedToPlayException,
                 CardNotAvailableException,
                 CardNotAffordableException,
@@ -122,7 +119,7 @@ public class GameMaster {
         }
     }
 
-    public void cardDiscarded(Card card, Player player, Game game)
+    void cardDiscarded(Card card, Player player, Game game)
             throws CardNotAvailableException,
                 NotAllowedToPlayException {
         if (!isPlayerAllowedToPlay(player, game)) {
@@ -141,7 +138,7 @@ public class GameMaster {
         }
     }
 
-    public boolean cardNotPlayedBefore(Card card, Player player, Game game) {
+    boolean cardNotPlayedBefore(Card card, Player player, Game game) {
         final long count = log.byCardByPlayer(player, game)
                 .filter(cardPlayed -> cardPlayed.card() == card)
                 .count();
@@ -195,22 +192,24 @@ public class GameMaster {
         }
     }
 
-    public Card lastPlayed(Player player, Game game) {
+    private Card lastPlayed(Player player, Game game) {
         for (int i = log.log().size() - 1; i >= 0; i -= 1) {
             if (log.log().get(i) instanceof CardPlayed
                     && log.log().get(i).game() == game
-                    && ((CardPlayed) log.log().get(i)).player() == player) {
+                    && log.log().get(i).player() == player) {
                 return ((CardPlayed) log.log().get(i)).card();
             }
         }
         return null;
     }
 
-    public boolean isRoundCompleted(Game game) {
+    boolean isRoundCompleted(Game game) {
         return 0 == log.byEvent(CardPlayed.class, game).count() % game.players().size();
     }
 
-    private void ageCompleted(Game game) {
+    void ageCompleted(Game game) {
+        game.players().forEach((integer, player) -> handleMilitary(player, game));
+
         final Age activeAge = activeAge(game);
         log.add(new AgeCompleted(Player.EVERY, game, activeAge));
 
@@ -219,6 +218,53 @@ public class GameMaster {
         if (isGameCompleted(game)) {
             completeGame(game);
         }
+    }
+
+    private void handleMilitary(Player player, Game game) {
+        List<Integer> keys = game.players().keySet().stream().collect(Collectors.toList());
+        Integer indexOfLeftPlayer = 0;
+        Integer indexOfRightPlayer = 0;
+        for (int i = 0; i < keys.size(); i += 1) {
+            if (game.players().get(keys.get(i)) == player) {
+                indexOfLeftPlayer = i - 1 >= 0 ? i - 1 : keys.size() - 1;
+                indexOfRightPlayer = i + 1 <= keys.size() - 1 ? i + 1 : 0;
+            }
+        }
+        long currentPlayerMilitaryCount = countMilitary(player, game);
+        long leftPlayerMilitaryCount = countMilitary(game.players().get(keys.get(indexOfLeftPlayer)), game);
+        long rightPlayerMilitaryCount = countMilitary(game.players().get(keys.get(indexOfRightPlayer)), game);
+        if (leftPlayerMilitaryCount > currentPlayerMilitaryCount) {
+            log.add(new GotMilitaryLoss(player, game, activeAge(game)));
+        } else if (leftPlayerMilitaryCount < currentPlayerMilitaryCount) {
+            log.add(new GotMilitaryWin(player, game, activeAge(game)));
+        }
+
+        if (rightPlayerMilitaryCount > currentPlayerMilitaryCount) {
+            log.add(new GotMilitaryLoss(player, game, activeAge(game)));
+        } else if (rightPlayerMilitaryCount < currentPlayerMilitaryCount) {
+            log.add(new GotMilitaryWin(player, game, activeAge(game)));
+        }
+    }
+
+    private int countMilitary(Player player, Game game) {
+        return log.byCardByPlayer(player, game)
+                .filter(cardPlayed -> cardPlayed.card().type() == Card.Type.Red)
+                .mapToInt(cardPlayed -> {
+                    if (cardPlayed.card().age() == One) return 1;
+                    if (cardPlayed.card().age() == Two) return 2;
+                    return 3;
+                })
+                .sum();
+    }
+
+    private int scoreFromMilitary(Player player, Game game) {
+        return log.byEvent(GotMilitaryWin.class, player, game)
+                .mapToInt(value -> {
+                    if (value.age() == One) return 1;
+                    else if (value.age() == Two) return 3;
+                    else return 5;
+                }).sum() - (int) log.byEvent(GotMilitaryLoss.class, player, game)
+                .count();
     }
 
     private void handOutAgeCards(Game game, Age activeAge) {
@@ -237,18 +283,23 @@ public class GameMaster {
 
     public Map<Player, Integer> finalScore(Game game) throws Exception {
         if (!isGameCompleted(game)) {
-            throw new Exception("Game is not yet completed");
+            throw new GameNotCompletedException();
         }
 
         Map<Player, Integer> finalScore = new HashMap<>();
         game.players().forEach((playerId, player) -> {
-            int score = log.byEvent(GotVictoryPoints.class, player, game)
-                    .mapToInt(event -> ((GotVictoryPoints) event).amount())
-                    .sum();
+            int score = scoreFromVictoryPoints(game, player);
             score += scoreFromScienceCards(player, game);
+            score += scoreFromMilitary(player, game);
             finalScore.put(player, score);
         });
         return finalScore;
+    }
+
+    private int scoreFromVictoryPoints(Game game, Player player) {
+        return log.byEvent(GotVictoryPoints.class, player, game)
+                .mapToInt(event -> ((GotVictoryPoints) event).amount())
+                .sum();
     }
 
     private int scoreFromScienceCards(Player player, Game game) {
@@ -314,19 +365,20 @@ public class GameMaster {
         log.add(new GameCompleted(Player.EVERY, game, Three));
     }
 
-    public boolean isGameCompleted(Game game) {
+    boolean isGameCompleted(Game game) {
         return log.byEvent(GameCompleted.class, game).count() == 1 ||
                 AGES_PER_GAME == log.byEvent(AgeCompleted.class, Player.EVERY, game).count();
     }
 
-    public boolean isPlayerAllowedToPlay(Player player, Game game) {
+    boolean isPlayerAllowedToPlay(Player player, Game game) {
         return log.byEvent(RoundCompleted.class, Player.EVERY, game).count()
                 >= log.byCardByPlayer(player, game).count();
     }
 
-    public boolean isAffordable(Card card, Player player, Game game) {
-        if (card.coinCost() == 0 && card.resourceCost().isEmpty()) return true;
-        return card.coinCost() <= coinsAvailable(player, game)
+    boolean isAffordable(Card card, Player player, Game game) {
+        return card.coinCost() == 0
+                && card.resourceCost().isEmpty()
+                || card.coinCost() <= coinsAvailable(player, game)
                 && resourcesAvailable(player, game).contains(card.resourceCost());
     }
 
@@ -347,7 +399,7 @@ public class GameMaster {
     }
 
     @SuppressWarnings("unchecked")
-    public boolean isFree(Card card, Player player, Game game) {
+    boolean isFree(Card card, Player player, Game game) {
         // we have to check like this because of the two trading posts
         return log.byCardByPlayer(player, game)
                 .anyMatch(cardPlayed -> card.freeConstruction().isAssignableFrom(cardPlayed.card().getClass()));

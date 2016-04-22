@@ -48,8 +48,8 @@ public class GameMasterTest {
     @Test
     public void idsForGames() {
         master.initiateGame(setup.setupGame(3), mockPlayers(3), 2);
-        assertEquals(1, ((GameCreated) log.log().get(0)).game().id());
-        assertEquals(2, ((GameCreated) log.log().get(7)).game().id());
+        assertEquals(1, log.log().get(0).game().id());
+        assertEquals(2, log.log().get(7).game().id());
     }
 
     @Test
@@ -271,6 +271,21 @@ public class GameMasterTest {
         log.add(new GameCompleted(Player.EVERY, game, Three));
         assertEquals("3/1/1 with 2 optionals -> should use optionals as compasses",
                 34, master.finalScore(game).get(firstPlayer).intValue());
+    }
+
+    @Test
+    public void computeVictoryPointsFromMilitary() throws Exception {
+        log.add(new CardPlayed(new Barracks(3), firstPlayer, game, One));
+        master.ageCompleted(game);
+        log.add(new CardPlayed(new Walls(3), firstPlayer, game, Two));
+        master.ageCompleted(game);
+        log.add(new CardPlayed(new Circus(3), players.get(2), game, Three));
+        master.ageCompleted(game);
+
+        assertEquals("First player wins two battles each in age one and two",
+                13, master.finalScore(game).get(firstPlayer).intValue());
+        assertEquals("Third player wins one battle in the third age",
+                3, master.finalScore(game).get(players.get(2)).intValue());
     }
 
     private Map<Integer, Player> mockPlayers(int number) {
