@@ -35,3 +35,6 @@ local.properties
 
 # Log files
 *.log
+
+# for now we don't want to have any binaries in our repo
+*.png
