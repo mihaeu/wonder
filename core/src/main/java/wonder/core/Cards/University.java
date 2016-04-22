@@ -14,6 +14,6 @@ public class University extends Card {
 
     @Override
     public Event process(Player player, Game game, Age age) {
-        return new GotScienceSymbol(ScienceSymbols.StoneTablet, player, game, age);
+        return new GotScienceSymbol(ScienceSymbol.StoneTablet, player, game, age);
     }
 }

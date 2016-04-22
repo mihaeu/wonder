@@ -89,13 +89,11 @@ public abstract class Card {
         Gray
     }
 
-    public enum ScienceSymbols {
+    public enum ScienceSymbol {
         StoneTablet,
         Cogs,
         Compass,
-        OptionalStoneTablet,
-        OptionalCogs,
-        OptionalCompass
+        OptionalSymbol
     }
 
     @Override

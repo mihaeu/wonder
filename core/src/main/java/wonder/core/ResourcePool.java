@@ -35,7 +35,9 @@ public class ResourcePool {
                     option.put(type, count);
                     newPool.add(option);
                 }));
-        if (!newPool.isEmpty()) pool.addAll(newPool);
+        if (!newPool.isEmpty()) {
+            pool.addAll(newPool);
+        }
     }
 
     public boolean contains(Map<Type, Integer> resources) {

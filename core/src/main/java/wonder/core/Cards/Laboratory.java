@@ -13,6 +13,6 @@ public class Laboratory extends Card {
 
     @Override
     public Event process(Player player, Game game, Age age) {
-        return new GotScienceSymbol(ScienceSymbols.Cogs, player, game, age);
+        return new GotScienceSymbol(ScienceSymbol.Cogs, player, game, age);
     }
 }

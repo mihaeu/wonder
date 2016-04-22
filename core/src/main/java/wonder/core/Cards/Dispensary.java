@@ -13,6 +13,6 @@ public class Dispensary extends Card {
 
     @Override
     public Event process(Player player, Game game, Age age) {
-        return new GotScienceSymbol(ScienceSymbols.Compass, player, game, age);
+        return new GotScienceSymbol(ScienceSymbol.Compass, player, game, age);
     }
 }

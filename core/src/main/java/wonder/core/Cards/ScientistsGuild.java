@@ -3,11 +3,7 @@ package wonder.core.Cards;
 import wonder.core.*;
 import wonder.core.Events.GotScienceSymbol;
 
-import java.util.Arrays;
-
-import static wonder.core.Card.ScienceSymbols.OptionalCogs;
-import static wonder.core.Card.ScienceSymbols.OptionalCompass;
-import static wonder.core.Card.ScienceSymbols.OptionalStoneTablet;
+import static wonder.core.Card.ScienceSymbol.OptionalSymbol;
 import static wonder.core.Resources.Type.*;
 
 public class ScientistsGuild extends Card {
@@ -17,11 +13,6 @@ public class ScientistsGuild extends Card {
 
     @Override
     public Event process(Player player, Game game, Age age) {
-        return new GotScienceSymbol(
-                Arrays.asList(OptionalCompass, OptionalCogs, OptionalStoneTablet),
-                player,
-                game,
-                age
-        );
+        return new GotScienceSymbol(OptionalSymbol, player, game, age);
     }
 }

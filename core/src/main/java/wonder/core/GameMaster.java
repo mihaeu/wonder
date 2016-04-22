@@ -1,7 +1,7 @@
 package wonder.core;
 
 import wonder.core.Card.Age;
-import wonder.core.Card.ScienceSymbols;
+import wonder.core.Card.ScienceSymbol;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.CardAlreadyPlayedException;
 import wonder.core.Exceptions.CardNotAffordableException;
@@ -257,17 +257,24 @@ public class GameMaster {
     }
 
     private int scoreFromScienceCards(Player player, Game game) {
-        List<ScienceSymbols> symbols = new ArrayList<>();
+        List<ScienceSymbol> symbols = new ArrayList<>();
         log.byEvent(GotScienceSymbol.class, player, game)
                 .map(event -> (GotScienceSymbol) event)
-                .forEach(gotScienceSymbol -> gotScienceSymbol.symbols().forEach(symbols::add));
+                .forEach(gotScienceSymbol -> symbols.add(gotScienceSymbol.symbol()));
         return calculateScienceCardCombination(symbols);
     }
 
-    private int calculateScienceCardCombination(List<ScienceSymbols> symbols) {
-        int compassCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.Compass).count();
-        int stoneTabletCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.StoneTablet).count();
-        int cogsCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbols.Cogs).count();
+    private List<List<ScienceSymbol>> generateSymbolCombinations(Player player, Game game) {
+        List<ScienceSymbol> combinations = new ArrayList<>();
+//        log.byEvent(GotScienceSymbol.class, player, game)
+//                .filter()
+        return null;
+    }
+
+    private int calculateScienceCardCombination(List<ScienceSymbol> symbols) {
+        int compassCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.Compass).count();
+        int stoneTabletCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.StoneTablet).count();
+        int cogsCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.Cogs).count();
         return Math.min(Math.min(compassCount, stoneTabletCount), cogsCount) * 7
                 + compassCount * compassCount
                 + stoneTabletCount * stoneTabletCount
