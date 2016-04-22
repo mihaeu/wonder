@@ -71,7 +71,8 @@ public class Web {
         });
     }
 
-    public static class JsonTransformer implements ResponseTransformer {
+    @SuppressWarnings("unchecked")
+    private static class JsonTransformer implements ResponseTransformer {
 
         @Override
         public String render(Object model) {
@@ -83,21 +84,22 @@ public class Web {
             return model.toString();
         }
 
-        public String render(List<Card> cards) {
+        String render(List<Card> cards) {
             StringBuilder builder = new StringBuilder();
             builder.append("{\"cards\":[");
             for (int i = 0, count = cards.size(); i < count; i += 1) {
-                builder.append("{\"name\":\"");
-                builder.append(cards.get(i).name());
-                builder.append("\",\"type\":\"" + cards.get(i).type().toString());
-                builder.append("\"}");
+                builder.append("{\"name\":\"")
+                    .append(cards.get(i).name())
+                    .append("\",\"type\":\"")
+                    .append(cards.get(i).type().toString())
+                    .append("\"}");
                 if (i + 1 < count) builder.append(",");
             }
             builder.append("]}");
             return builder.toString();
         }
 
-        public String render(Map<Player, List<Card>> model) {
+        String render(Map<Player, List<Card>> model) {
             StringBuilder builder = new StringBuilder();
             if (model.isEmpty()) {
                 return "{}";
