@@ -12,13 +12,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static wonder.core.Card.Age.*;
+import static wonder.core.Card.ScienceSymbol.*;
 
 public class GameMaster {
     private static final int INITIAL_CARDS_PER_PLAYER = 7;
     private static final int STARTING_COINS = 3;
     private static final int ROUNDS_PER_AGE = 6;
     private static final int AGES_PER_GAME = 3;
-    public static final int COINS_FOR_DISCARDING_A_CARD = 3;
+    private static final int COINS_FOR_DISCARDING_A_CARD = 3;
 
     private EventLog log;
 
@@ -150,7 +151,6 @@ public class GameMaster {
     }
 
     public boolean cardNotPlayedBefore(Card card, Player player, Game game) {
-//        return true;
         final long count = log.byCardByPlayer(player, game)
                 .filter(cardPlayed -> cardPlayed.card() == card)
                 .count();
@@ -261,24 +261,53 @@ public class GameMaster {
         log.byEvent(GotScienceSymbol.class, player, game)
                 .map(event -> (GotScienceSymbol) event)
                 .forEach(gotScienceSymbol -> symbols.add(gotScienceSymbol.symbol()));
-        return calculateScienceCardCombination(symbols);
+        List<Map<ScienceSymbol, Integer>> combinations = generateSymbolCombinations(symbols);
+        OptionalInt bestCombination = combinations.stream()
+                .mapToInt(this::calculateScienceCardCombination)
+                .max();
+        return bestCombination.isPresent() ? bestCombination.getAsInt() : 0;
     }
 
-    private List<List<ScienceSymbol>> generateSymbolCombinations(Player player, Game game) {
-        List<ScienceSymbol> combinations = new ArrayList<>();
-//        log.byEvent(GotScienceSymbol.class, player, game)
-//                .filter()
-        return null;
+    private List<Map<ScienceSymbol, Integer>> generateSymbolCombinations(List<ScienceSymbol> symbols) {
+        Map<ScienceSymbol, Integer> normalSymbols = new HashMap<>();
+        normalSymbols.put(Cogs, 0);
+        normalSymbols.put(Compass, 0);
+        normalSymbols.put(StoneTablet, 0);
+        symbols.stream()
+                .filter(scienceSymbol -> scienceSymbol != OptionalSymbol)
+                .forEach(scienceSymbol -> {
+                    normalSymbols.put(scienceSymbol, normalSymbols.get(scienceSymbol) + 1);
+                });
+
+        List<Map<ScienceSymbol, Integer>> combinations = new ArrayList<>();
+        combinations.add(normalSymbols);
+        symbols.stream()
+                .filter(scienceSymbol -> scienceSymbol == OptionalSymbol)
+                .forEach(scienceSymbol -> {
+                    List<Map<ScienceSymbol, Integer>> tempCombinations = new ArrayList<>();
+                    combinations.forEach(scienceSymbolIntegerMap -> {
+                        Map<ScienceSymbol, Integer> tempCogs = new HashMap<>(scienceSymbolIntegerMap);
+                        tempCogs.put(Cogs, tempCogs.get(Cogs) + 1);
+                        tempCombinations.add(tempCogs);
+
+                        Map<ScienceSymbol, Integer> tempCompass = new HashMap<>(scienceSymbolIntegerMap);
+                        tempCompass.put(Compass, tempCompass.get(Compass) + 1);
+                        tempCombinations.add(tempCompass);
+
+                        Map<ScienceSymbol, Integer> tempStoneTablet = new HashMap<>(scienceSymbolIntegerMap);
+                        tempStoneTablet.put(StoneTablet, tempStoneTablet.get(StoneTablet) + 1);
+                        tempCombinations.add(tempStoneTablet);
+                    });
+                    combinations.addAll(tempCombinations);
+                });
+        return combinations;
     }
 
-    private int calculateScienceCardCombination(List<ScienceSymbol> symbols) {
-        int compassCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.Compass).count();
-        int stoneTabletCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.StoneTablet).count();
-        int cogsCount = (int) symbols.stream().filter(symbol -> symbol == ScienceSymbol.Cogs).count();
-        return Math.min(Math.min(compassCount, stoneTabletCount), cogsCount) * 7
-                + compassCount * compassCount
-                + stoneTabletCount * stoneTabletCount
-                + cogsCount * cogsCount;
+    private int calculateScienceCardCombination(Map<ScienceSymbol, Integer> symbols) {
+        return Math.min(Math.min(symbols.get(Compass), symbols.get(StoneTablet)), symbols.get(Cogs)) * 7
+                + symbols.get(Compass) * symbols.get(Compass)
+                + symbols.get(StoneTablet) * symbols.get(StoneTablet)
+                + symbols.get(Cogs) * symbols.get(Cogs);
     }
 
     public boolean isAgeCompleted(Game game) {

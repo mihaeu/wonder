@@ -14,9 +14,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static wonder.core.Card.Age.*;
-import static wonder.core.Card.ScienceSymbol.Cogs;
-import static wonder.core.Card.ScienceSymbol.Compass;
-import static wonder.core.Card.ScienceSymbol.StoneTablet;
+import static wonder.core.Card.ScienceSymbol.*;
 import static wonder.core.Resources.Type.Stone;
 
 public class GameMasterTest {
@@ -233,16 +231,15 @@ public class GameMasterTest {
     }
 
     @Test
-    public void oneSetOfScienceSymbols() throws Exception {
+    public void computesVictoryPointsFromScienceSymbols() throws Exception {
         log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
         log.add(new GotScienceSymbol(Compass, firstPlayer, game, One));
         log.add(new GotScienceSymbol(StoneTablet, firstPlayer, game, One));
         log.add(new GameCompleted(Player.EVERY, game, Three));
-        assertEquals(10, master.finalScore(game).get(firstPlayer).intValue());
-    }
+        assertEquals("1 set -> 10 points",
+                10, master.finalScore(game).get(firstPlayer).intValue());
 
-    @Test
-    public void threeSetsOfScienceSymbols() throws Exception {
+        log.log().clear();
         log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
         log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
         log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
@@ -253,7 +250,28 @@ public class GameMasterTest {
         log.add(new GotScienceSymbol(StoneTablet, firstPlayer, game, One));
         log.add(new GotScienceSymbol(StoneTablet, firstPlayer, game, One));
         log.add(new GameCompleted(Player.EVERY, game, Three));
-        assertEquals(48, master.finalScore(game).get(firstPlayer).intValue());
+        assertEquals("3 sets -> 48 points",
+                48, master.finalScore(game).get(firstPlayer).intValue());
+
+        log.log().clear();
+        log.add(new GotScienceSymbol(OptionalSymbol, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(OptionalSymbol, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(OptionalSymbol, firstPlayer, game, One));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
+        assertEquals("3 optionals -> best combo one set -> 10 points",
+                10, master.finalScore(game).get(firstPlayer).intValue());
+
+        log.log().clear();
+        log.add(new GotScienceSymbol(Compass, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Compass, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Compass, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(StoneTablet, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(Cogs, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(OptionalSymbol, firstPlayer, game, One));
+        log.add(new GotScienceSymbol(OptionalSymbol, firstPlayer, game, One));
+        log.add(new GameCompleted(Player.EVERY, game, Three));
+        assertEquals("3/1/1 with 2 optionals -> should use optionals as compasses",
+                34, master.finalScore(game).get(firstPlayer).intValue());
     }
 
     private Map<Integer, Player> mockPlayers(int number) {
