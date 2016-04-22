@@ -85,7 +85,9 @@
             document.getElementById('player' + playerId).innerHTML = '';
             for (i = 0; i < data.cards.length; i += 1) {
                 document.getElementById('player' + playerId).innerHTML +=
-                        '<li><button class="card ' + data.cards[i].type + '" onclick="playCard(' + i + ', ' + playerId + ');refreshCards();">' + data.cards[i].name + '</button></li>';
+                        '<li onclick="playCard(' + i + ', ' + playerId + ');refreshCards();">'
+                        + '<img src="img/' + cardNameToImageName(data.cards[i].name) + '.png" />'
+                        + '</li>';
             }
         });
     };
@@ -119,6 +121,9 @@
         loadPlayerHandCards(2);
         loadPlayerHandCards(3);
     };
+    var cardNameToImageName = function(cardName) {
+        return cardName.toLowerCase().replace(' ', '-');
+    }
 
     refreshCards();
 </script>

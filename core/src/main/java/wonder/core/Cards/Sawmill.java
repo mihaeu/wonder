@@ -5,9 +5,9 @@ import wonder.core.Events.GotResources;
 
 import static wonder.core.Resources.Type.Wood;
 
-public class SawMill extends Card {
-    public SawMill(int minPlayers) {
-        super("Saw Mill", Type.Brown, Age.Two, minPlayers, 1);
+public class Sawmill extends Card {
+    public Sawmill(int minPlayers) {
+        super("Sawmill", Type.Brown, Age.Two, minPlayers, 1);
     }
 
     @Override

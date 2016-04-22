@@ -5,9 +5,9 @@ import wonder.core.Events.GotVictoryPoints;
 
 import static wonder.core.Resources.Type.Stone;
 
-public class Aqeduct extends Card {
-    public Aqeduct(int minPlayers) {
-        super("Aqeduct", Type.Blue, Age.Two, minPlayers, ResourcePool.cost(Stone, Stone, Stone), Baths.class);
+public class Aqueduct extends Card {
+    public Aqueduct(int minPlayers) {
+        super("Aqueduct", Type.Blue, Age.Two, minPlayers, ResourcePool.cost(Stone, Stone, Stone), Baths.class);
     }
 
     @Override

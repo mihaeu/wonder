@@ -5,9 +5,9 @@ import wonder.core.Events.GotResources;
 
 import static wonder.core.Resources.Type.Clay;
 
-public class BrickYard extends Card {
-    public BrickYard(int minPlayers) {
-        super("Brick Yard", Type.Brown, Age.Two, minPlayers, 1);
+public class Brickyard extends Card {
+    public Brickyard(int minPlayers) {
+        super("Brickyard", Type.Brown, Age.Two, minPlayers, 1);
     }
 
     @Override

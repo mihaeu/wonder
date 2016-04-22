@@ -3,9 +3,9 @@ package wonder.core.Cards;
 import wonder.core.*;
 import wonder.core.Events.GotResources;
 
-public class GlassWorks extends Card {
-    public GlassWorks(int minPlayers, Age age) {
-        super("Glass Works", Type.Gray, age, minPlayers);
+public class Glassworks extends Card {
+    public Glassworks(int minPlayers, Age age) {
+        super("Glassworks", Type.Gray, age, minPlayers);
     }
 
     @Override

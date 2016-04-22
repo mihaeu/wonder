@@ -169,7 +169,7 @@ public class GameMasterTest {
 
         Event gotResources = new GotResources(new Resources(Stone, Stone, Stone), firstPlayer, game, One);
         log.log().addAll(Arrays.asList(gotResources, gotResources, gotResources));
-        assertTrue(master.isAffordable(new Aqeduct(3), firstPlayer, game));
+        assertTrue(master.isAffordable(new Aqueduct(3), firstPlayer, game));
     }
 
     @Test
@@ -177,14 +177,14 @@ public class GameMasterTest {
         assertTrue(master.isAffordable(new OreVein(3), firstPlayer, game));
 
         log.log().add(new GotCoins(1, firstPlayer, game, One));
-        assertTrue(master.isAffordable(new SawMill(3), firstPlayer, game));
+        assertTrue(master.isAffordable(new Sawmill(3), firstPlayer, game));
     }
 
     @Test
     public void paysCoinsForCardWithCoinCost() throws Exception {
         assertEquals(3, master.coinsAvailable(firstPlayer, game));
-        log.add(new GotCards(Arrays.asList(new SawMill(3)), firstPlayer, game, One));
-        master.cardPlayed(new SawMill(3), firstPlayer, game);
+        log.add(new GotCards(Arrays.asList(new Sawmill(3)), firstPlayer, game, One));
+        master.cardPlayed(new Sawmill(3), firstPlayer, game);
         assertEquals(2, master.coinsAvailable(firstPlayer, game));
     }
 
