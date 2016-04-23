@@ -122,7 +122,7 @@
         loadPlayerHandCards(3);
     };
     var cardNameToImageName = function(cardName) {
-        return cardName.toLowerCase().replace(' ', '-');
+        return cardName.toLowerCase().replace(/ /g, '-');
     }
 
     refreshCards();
