@@ -85,9 +85,9 @@
             document.getElementById('player' + playerId).innerHTML = '';
             for (i = 0; i < data.cards.length; i += 1) {
                 document.getElementById('player' + playerId).innerHTML +=
-                        '<li onclick="playCard(' + i + ', ' + playerId + ');refreshCards();">'
+                        '<a onclick="playCard(' + i + ', ' + playerId + ');">'
                         + '<img src="img/' + cardNameToImageName(data.cards[i].name) + '.png" />'
-                        + '</li>';
+                        + '</a>';
             }
         });
     };
@@ -101,6 +101,7 @@
                     var status = xhr.status;
                     if (status == 200) {
                         resolve(xhr.response);
+                        refreshCards();
                     } else {
                         reject(xhr.response, status);
                     }
