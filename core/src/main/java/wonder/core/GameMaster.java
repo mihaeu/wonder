@@ -2,6 +2,9 @@ package wonder.core;
 
 import wonder.core.Card.Age;
 import wonder.core.Card.ScienceSymbol;
+import wonder.core.Cards.EastTradingPost;
+import wonder.core.Cards.Forum;
+import wonder.core.Cards.WestTradingPost;
 import wonder.core.Events.*;
 import wonder.core.Exceptions.*;
 
@@ -100,8 +103,10 @@ public class GameMaster {
         if (!cardsAvailable(player, game).contains(card)) {
             throw new CardNotAvailableException();
         }
-        if (!isFree(card, player, game)
-                && !isAffordable(card, player, game)) {
+        final boolean free = isFree(card, player, game);
+        final boolean affordable = isAffordable(card, player, game);
+        if (!free
+                && !affordable) {
             throw new CardNotAffordableException();
         }
         if (!cardNotPlayedBefore(card, player, game)) {
@@ -268,10 +273,9 @@ public class GameMaster {
     }
 
     private void handOutAgeCards(Game game, Age activeAge) {
-        final Age nextAge = activeAge == One ? Two : Three;
         final GameCreated gameCreated = (GameCreated) log.byGame(game).findFirst().get();
         List<Card> ageCards = gameCreated.cards().stream()
-                .filter(card -> card.age() == nextAge)
+                .filter(card -> card.age() == activeAge)
                 .collect(Collectors.toList());
         int offset = 0;
         for (Integer key : game.players().keySet()) {
@@ -400,8 +404,14 @@ public class GameMaster {
 
     @SuppressWarnings("unchecked")
     boolean isFree(Card card, Player player, Game game) {
-        // we have to check like this because of the two trading posts
+        if (card instanceof Forum) {
+            return log.byCardByPlayer(player, game).anyMatch(cardPlayed -> {
+                return cardPlayed.card() instanceof EastTradingPost
+                        || cardPlayed.card() instanceof WestTradingPost;
+            });
+        }
+
         return log.byCardByPlayer(player, game)
-                .anyMatch(cardPlayed -> card.freeConstruction().isAssignableFrom(cardPlayed.card().getClass()));
+                .anyMatch(cardPlayed -> card.freeConstruction() == cardPlayed.card().getClass());
     }
 }

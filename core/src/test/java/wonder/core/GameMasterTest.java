@@ -161,6 +161,8 @@ public class GameMasterTest {
 
         log.log().add(new CardPlayed(new Scriptorium(3), firstPlayer, game, One));
         assertTrue(master.isFree(new Library(3), firstPlayer, game));
+
+        assertFalse(master.isFree(new Observatory(3), firstPlayer, game));
     }
 
     @Test
