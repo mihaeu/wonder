@@ -393,12 +393,26 @@ public class GameMaster {
                 .sum();
     }
 
-    private ResourcePool resourcesAvailable(Player player, Game game) {
+    public ResourcePool resourcesAvailable(Player player, Game game) {
         ResourcePool pool = new ResourcePool();
         log.byEvent(GotResources.class, player, game)
                 .map(GotResources.class::cast)
                 .forEach(gotResources -> pool.add(gotResources.resources()));
+        pool.add(resourcesFromTrading(player, game));
         return pool;
+    }
+
+    private Resources resourcesFromTrading(Player player, Game game) {
+        List<Resources.Type> resourcesFromTrading = new ArrayList<>();
+        for (Event event : log.log()) {
+            if (event instanceof RoundCompleted) {
+                resourcesFromTrading.clear();
+            }
+            if (event instanceof TradedResource && event.player() == player) {
+                resourcesFromTrading.add(((TradedResource) event).type());
+            }
+        }
+        return new Resources(resourcesFromTrading.toArray(new Resources.Type[resourcesFromTrading.size()]));
     }
 
     @SuppressWarnings("unchecked")
@@ -412,5 +426,19 @@ public class GameMaster {
 
         return log.byCardByPlayer(player, game)
                 .anyMatch(cardPlayed -> card.freeConstruction() == cardPlayed.card().getClass());
+    }
+
+    public void trade(Player from, Player to, Resources.Type type, Game game)
+            throws NotEnoughCoinsException, CannotTradeResourceFromPlayerException {
+        if (coinsAvailable(to, game) < 2) {
+            throw new NotEnoughCoinsException();
+        }
+        Map<Resources.Type, Integer> resources = new HashMap<>();
+        resources.put(type, 1);
+        if (!resourcesAvailable(from, game).contains(resources)) {
+            throw new CannotTradeResourceFromPlayerException();
+        }
+        log.add(new PayedCoins(2, to, game, activeAge(game)));
+        log.add(new TradedResource(from, to, type, game, activeAge(game)));
     }
 }

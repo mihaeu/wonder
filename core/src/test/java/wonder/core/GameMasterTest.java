@@ -5,10 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import wonder.core.Cards.*;
 import wonder.core.Events.*;
-import wonder.core.Exceptions.CardAlreadyPlayedException;
-import wonder.core.Exceptions.CardNotAffordableException;
-import wonder.core.Exceptions.CardNotAvailableException;
-import wonder.core.Exceptions.NotAllowedToPlayException;
+import wonder.core.Exceptions.*;
 
 import java.util.*;
 
@@ -297,6 +294,20 @@ public class GameMasterTest {
 
         master.ageCompleted(game);
         assertEquals(Three, master.cardsAvailable(firstPlayer, game).get(0).age());
+    }
+
+    @Test
+    public void tradesForOneResource() throws CannotTradeResourceFromPlayerException, NotEnoughCoinsException {
+        assertFalse(
+                "Player doesn't have enough resources",
+                master.isAffordable(new Baths(3), players.get(1), game));
+
+        // first player has stone
+        log.add(new GotResources(new Resources(Stone), firstPlayer, game, One));
+        master.trade(firstPlayer, players.get(1), Stone, game);
+        assertTrue(
+                "After trading he does",
+                master.isAffordable(new Baths(3), players.get(1), game));
     }
 
     private Map<Integer, Player> mockPlayers(int number) {
