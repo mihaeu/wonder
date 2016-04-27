@@ -1,0 +1,11 @@
+language: java
+jdk:
+  - oraclejdk8
+
+notifications:
+  email:
+    recipients:
+      - haeuslmann@gmail.com
+      - stefan.haeuslmann@gmail.com
+    on_success: change
+    on_failure: always
