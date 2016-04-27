@@ -41,7 +41,7 @@ public class GameMaster {
     Age activeAge(Game game) {
         final List<Age> ages = log.byGame(game)
                 .filter(event -> event instanceof AgeCompleted)
-                .map(event -> event.age())
+                .map(Event::age)
                 .collect(Collectors.toList());
         if (ages.isEmpty()) return One;
         if (ages.contains(Three)) return Three;
@@ -215,10 +215,9 @@ public class GameMaster {
     void ageCompleted(Game game) {
         game.players().forEach((integer, player) -> handleMilitary(player, game));
 
-        final Age activeAge = activeAge(game);
-        log.add(new AgeCompleted(Player.EVERY, game, activeAge));
+        log.add(new AgeCompleted(Player.EVERY, game, activeAge(game)));
 
-        handOutAgeCards(game, activeAge);
+        handOutAgeCards(game, activeAge(game));
 
         if (isGameCompleted(game)) {
             completeGame(game);

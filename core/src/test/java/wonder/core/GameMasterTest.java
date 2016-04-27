@@ -290,6 +290,15 @@ public class GameMasterTest {
                 3, master.finalScore(game).get(players.get(2)).intValue());
     }
 
+    @Test
+    public void handsOutCardsForNextAge() {
+        master.ageCompleted(game);
+        assertEquals(Two, master.cardsAvailable(firstPlayer, game).get(0).age());
+
+        master.ageCompleted(game);
+        assertEquals(Three, master.cardsAvailable(firstPlayer, game).get(0).age());
+    }
+
     private Map<Integer, Player> mockPlayers(int number) {
         Map<Integer, Player> players = new HashMap<>();
         for (int i = 0; i < number; i += 1) {
