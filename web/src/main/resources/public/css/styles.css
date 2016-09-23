@@ -1,0 +1,43 @@
+#trash {
+    background-color: lightblue;
+    width: 200px;
+    height: 100px;
+}
+
+.card {
+    width: 300px;
+    height: 40px;
+    margin: 5px;
+}
+
+.player {
+    width: 400px;
+    float: left;
+}
+ul {
+    list-style: none;
+}
+
+.Yellow {
+    background-color: yellow;
+}
+.Red {
+    background-color: red;
+}
+.Brown {
+    background-color: saddlebrown;
+}
+.Gray {
+    background-color: gray;
+}
+.Blue {
+    background-color: cornflowerblue;
+}
+.Green {
+    background-color: green;
+}
+#error {
+    font-size: 2em;
+    color: red;
+
+}

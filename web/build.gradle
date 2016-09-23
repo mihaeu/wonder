@@ -1,4 +1,4 @@
 dependencies {
     compile project(':core')
-    compile 'com.sparkjava:spark-core:2.3'
+    compile 'com.sparkjava:spark-core:2.5'
 }

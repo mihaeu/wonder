@@ -1,46 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test</title>
-    <style>
-        .card {
-            width: 300px;
-            height: 40px;
-            margin: 5px;
-        }
-
-        .player {
-            width: 400px;
-            float: left;
-        }
-        ul {
-            list-style: none;
-        }
-
-        .Yellow {
-            background-color: yellow;
-        }
-        .Red {
-            background-color: red;
-        }
-        .Brown {
-            background-color: saddlebrown;
-        }
-        .Gray {
-            background-color: gray;
-        }
-        .Blue {
-            background-color: cornflowerblue;
-        }
-        .Green {
-            background-color: green;
-        }
-    </style>
+    <title>7 Wonders</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <h1>7 Wonders</h1>
-    <div style="font-size: 2em;color:red;" id="error"></div>
-    <button onclick="refreshCards()">Refresh</button>
+    <div id="error"></div>
+    <button id="refresh">Refresh</button>
+    <div id="trash" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
     <div style="clear: both;"></div>
     <div class="player">
         <h2>Player 1</h2>
@@ -61,72 +29,6 @@
         </div>
     </div>
 
-    <script>
-    var getJSON = function(url) {
-        return new Promise(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('get', url, true);
-            xhr.responseType = 'json';
-            xhr.onload = function() {
-                var status = xhr.status;
-                if (status == 200) {
-                    resolve(xhr.response);
-                } else {
-                    reject(status);
-                }
-            };
-            xhr.send();
-        });
-    };
-    var loadPlayerHandCards = function(playerId) {
-        getJSON('http://localhost:4567/cards/' + playerId + '/1').then(function(data) {
-            var i;
-            console.log(data);
-            document.getElementById('player' + playerId).innerHTML = '';
-            for (i = 0; i < data.cards.length; i += 1) {
-                document.getElementById('player' + playerId).innerHTML +=
-                        '<a onclick="playCard(' + i + ', ' + playerId + ');">'
-                        + '<img src="img/' + cardNameToImageName(data.cards[i].name) + '.png" />'
-                        + '</a>';
-            }
-        });
-    };
-    var playCard = function(cardIndex, playerId) {
-        var getJSON = function(url) {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('put', 'http://localhost:4567/play/' + cardIndex + '/' + playerId + '/1', true);
-                xhr.responseType = 'json';
-                xhr.onload = function() {
-                    var status = xhr.status;
-                    if (status == 200) {
-                        resolve(xhr.response);
-                        refreshCards();
-                    } else {
-                        reject(xhr.response, status);
-                    }
-                };
-                xhr.send();
-            });
-        };
-        getJSON(cardIndex, playerId).then(function(data) {
-            document.getElementById('error').innerHTML = '';
-            console.log(data);
-        }, function (data, status) {
-            console.log(data);
-            document.getElementById('error').innerHTML = status + ' ' + data.error;
-        });
-    };
-    var refreshCards = function() {
-        loadPlayerHandCards(1);
-        loadPlayerHandCards(2);
-        loadPlayerHandCards(3);
-    };
-    var cardNameToImageName = function(cardName) {
-        return cardName.toLowerCase().replace(/ /g, '-');
-    }
-
-    refreshCards();
-</script>
+    <script src="js/app.js"></script>
 </body>
 </html>
